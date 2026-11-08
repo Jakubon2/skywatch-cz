@@ -194,10 +194,14 @@ def predict(conn: sqlite3.Connection, lat: float, lon: float, radius_km: float, 
         expected_in = _signed(usual, now_min)
         if not (-cfg["grace_minutes"] <= expected_in <= hours * 60):
             continue
-        observed = len(coverage.get(usual // 60, ()))
-        seen = len(group)
+        in_group = set(group)
+        seen_days = {d for d, m, _ in visits if m in in_group}
+        # Observed = recorder ran in the usual hour, plus every day the flight was actually seen
+        # (a 13:56 sighting of a 14:02 flight proves the recorder was running even without 14:xx data).
+        observed = len(coverage.get(usual // 60, set()) | seen_days)
+        seen = len(seen_days)
         confidence = round(min(1.0, seen / observed), 2) if observed else 0.0
-        types = Counter(t for _, m, t in visits if t and m in group)
+        types = Counter(t for _, m, t in visits if t and m in in_group)
         out.append({
             "callsign": callsign,
             "type": types.most_common(1)[0][0] if types else None,

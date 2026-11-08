@@ -1,0 +1,120 @@
+/* Nastavení tab */
+
+.settings { display: flex; flex-direction: column; gap: 12px; padding: 2px 0 8px; }
+
+.set-card {
+  padding: 14px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+}
+.set-card__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.set-card__icon {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  padding: 6px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.set-row { display: flex; align-items: center; gap: 14px; }
+.set-row__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.set-row__label { font-weight: 600; }
+.set-row__label--clip { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.set-row__sub, .set-text { color: var(--muted); font-size: 13px; }
+.set-text { margin: 0; }
+.set-gap { margin-top: 12px; }
+
+/* iOS-style switch */
+.switch {
+  flex: none;
+  position: relative;
+  width: 51px;
+  height: 31px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 16%, transparent);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.switch[aria-checked="true"] { background: var(--accent); }
+.switch:disabled { opacity: 0.45; cursor: default; }
+.switch:focus-visible { outline: 3px solid var(--accent-soft); outline-offset: 2px; }
+.switch__knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.switch[aria-checked="true"] .switch__knob { transform: translateX(20px); }
+
+.callout {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  font-size: 13px;
+}
+.callout p { margin: 0; }
+.callout p + p, .callout p + ul, .callout ul + p, .callout p + ol { margin-top: 8px; }
+.callout ul { margin: 0; padding-left: 18px; }
+.callout li + li { margin-top: 4px; }
+.callout--warn { background: color-mix(in srgb, var(--danger) 10%, transparent); }
+.callout--quiet { background: none; padding: 0; color: var(--muted); }
+
+.steps { margin: 10px 0 0; padding: 0; list-style: none; counter-reset: step; font-size: 13px; }
+.steps li { position: relative; padding: 3px 0 3px 30px; counter-increment: step; }
+.steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 2px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--surface-strong);
+  font-size: 11px;
+  font-weight: 700;
+}
+.ios-glyph {
+  width: 16px;
+  height: 16px;
+  vertical-align: -3px;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.about { margin: 0; padding: 0; list-style: none; font-size: 14px; }
+.about li { padding: 7px 0; }
+.about li + li { border-top: 1px solid var(--border); }
+.settings a { color: var(--accent); text-decoration: none; font-weight: 600; }
+.settings a:hover { text-decoration: underline; }
+
+@media (prefers-reduced-motion: reduce) {
+  .switch, .switch__knob { transition: none; }
+}

@@ -63,3 +63,13 @@ def test_one_row_per_cell_day(conn):
 
 def test_cluster_midnight_wrap():
     assert sorted(passes._cluster([1430, 5, 10, 700], 45)) == [5, 10, 1430]
+
+
+def test_downtime_does_not_count_against_flight(conn):
+    record_days(conn, 5)
+    # Day 6: the recorder ran at 14:xx, but the flight did not come -> one miss.
+    rec = passes.PassRecorder(conn)
+    rec.record(snap((NOW - timedelta(days=6)).replace(hour=14, minute=10), []))
+    # Day 7: the recorder was down all day -> not counted at all.
+    p = passes.predict(conn, 50.0, 14.5, 10, 3, NOW)["predictions"][0]
+    assert p["days_seen"] == 5 and p["days_observed"] == 6 and p["confidence"] == 0.83
