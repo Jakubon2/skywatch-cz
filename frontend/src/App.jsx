@@ -7,13 +7,30 @@ import { AppProvider, useApp } from "./state.jsx";
 const MORE_ICON = "M5 12h.01M12 12h.01M19 12h.01";
 const MAX_TABS = 5; // more than this: the first 4 stay, the rest go under "Více"
 
-function StatusPill({ status, count }) {
+// "před 3 min" / "před 2 h 5 min" / "před 2 dny"
+function age(ms) {
+  const min = Math.max(0, Math.round((Date.now() - ms) / 60000));
+  if (min < 1) return "před chvílí";
+  if (min < 60) return `před ${min} min`;
+  if (min < 48 * 60) return `před ${Math.floor(min / 60)} h ${min % 60} min`;
+  return `před ${Math.floor(min / 1440)} dny`;
+}
+
+function StatusPill({ status, count, shown, at }) {
   if (status === "loading") return <span className="pill">Načítám…</span>;
-  if (status === "offline") return <span className="pill pill--off">Backend neběží</span>;
+  if (status === "offline") {
+    const why = navigator.onLine === false ? "Bez připojení" : "Backend neběží";
+    if (!at || !count) return <span className="pill pill--off">{why}</span>;
+    return (
+      <span className="pill pill--off pill--stale" title={`${why}. Poslední data: ${new Date(at).toLocaleString("cs-CZ")}`}>
+        Offline · data {age(at)}
+      </span>
+    );
+  }
   if (status === "waiting") return <span className="pill">Čekám na data…</span>;
   return (
     <span className="pill pill--live">
-      <span className="dot" /> {count} letadel
+      <span className="dot" /> {shown == null ? count : `${shown} / ${count}`} letadel
     </span>
   );
 }
@@ -84,13 +101,13 @@ function Nav() {
 }
 
 function Shell() {
-  const { aircraft, status, selectedHex, selected, selectedLost, select, view, open, setOpen, setMap } = useApp();
+  const { aircraft, status, dataAt, selectedHex, selected, selectedLost, select, view, open, setOpen, setMap, dimmed } = useApp();
   const tab = TABS.find((t) => t.id === view) || TABS[0];
   const Active = tab.component;
 
   return (
     <div className="app">
-      <Map aircraft={aircraft} selectedHex={selectedHex} onSelect={select} onReady={setMap} />
+      <Map aircraft={aircraft} selectedHex={selectedHex} onSelect={select} onReady={setMap} dimmed={dimmed} />
       {TABS.map((t) => t.overlay && <t.overlay key={t.id} />)}
 
       <header className="topbar">
@@ -98,7 +115,7 @@ function Shell() {
           <img src="/favicon.svg" alt="" width="28" height="28" />
           <span>Skywatch <b>CZ</b></span>
         </div>
-        <StatusPill status={status} count={aircraft.length} />
+        <StatusPill status={status} count={aircraft.length} shown={dimmed && aircraft.length - dimmed.size} at={dataAt} />
       </header>
 
       <aside className={`panel panel--${selected ? "detail" : tab.id} ${open ? "panel--open" : ""}`}>

@@ -354,6 +354,18 @@ body {
   .panel, .ac, .glide .ac-marker { transition: none; }
 }
 
+/* "Úspora baterie" (state.jsx toggles html.saver): no looping or gliding animations. */
+.saver *, .saver *::before, .saver *::after { animation: none !important; transition: none !important; }
+
+.pill--stale {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
 /* ---------- Navigation: segmented tabs in the sheet handle ---------- */
 
 .seg {
@@ -490,3 +502,36 @@ input::placeholder, textarea::placeholder { color: var(--muted); }
 @media (prefers-reduced-motion: reduce) {
   .seg button { transition: none; }
 }
+
+/* Data label next to a plane: shown from LABEL_ZOOM up (.z-labels on the map) and always for the
+   selected plane. Doesn't rotate with the plane. MapLayers can switch the zoom-based labels off. */
+.ac-lbl {
+  position: absolute;
+  top: 3px;
+  left: 29px;
+  display: none;
+  padding: 2px 7px 3px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-strong);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font-size: 11.5px;
+  line-height: 1.25;
+  white-space: nowrap;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+.ac-lbl b { font-weight: 700; }
+.ac-lbl small { color: var(--muted); font-size: 10.5px; font-weight: 600; }
+.ac-lbl small:empty { display: none; }
+.ac-lbl span { display: block; color: var(--muted); }
+.ac-lbl span:empty { display: none; }
+.z-labels:not(.labels-off) .ac-lbl,
+.ac--sel + .ac-lbl { display: block; }
+.ac--dim:not(.ac--sel) + .ac-lbl { display: none; }
+.ac--sel + .ac-lbl { border-color: var(--accent); }
+
+/* Heavies (A5: B777, A350, B747…) drawn a bit larger than other airliners. */
+.ac--heavy svg { width: calc(var(--ac, 22px) * 1.2); height: calc(var(--ac, 22px) * 1.2); }
+.ac--heavy.ac--sel svg { width: calc(var(--ac, 22px) * 1.2 + 8px); height: calc(var(--ac, 22px) * 1.2 + 8px); }

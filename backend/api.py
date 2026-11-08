@@ -8,14 +8,20 @@ from typing import Literal
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
+import airspace
 import alerts_service
+import board
 import chat
 import contrails
+import metar_api
 import feed
 import noise
+import pass_alerts
 import push
 import routes_core
 import routes_extra
+import watchlist
+import whatwasthat
 from poller import Poller
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -43,6 +49,12 @@ app.include_router(routes_extra.router)
 app.include_router(push.make_router(poller))
 app.include_router(noise.make_router(poller))
 app.include_router(contrails.router)
+app.include_router(metar_api.router)
+app.include_router(airspace.router)  # map overlays: airspace zones + radar frame
+app.include_router(watchlist.make_router(poller))
+app.include_router(pass_alerts.make_router(poller))  # heads-up before predicted passes
+app.include_router(board.make_router(poller))  # LKPR arrivals/departures board
+app.include_router(whatwasthat.make_router(poller))  # "Co to bylo?"
 
 
 @app.get("/api/health")

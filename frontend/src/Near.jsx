@@ -3,6 +3,7 @@ import L from "leaflet";
 import { PLANE_SVG, altitudeHue, callsign, isGround } from "./aircraft.js";
 import { useApp, useMapLayer, useStored } from "./state.jsx";
 import { visiblePadding } from "./Map.jsx";
+import WhatWasThat, { WhatWasThatFab } from "./WhatWasThat.jsx";
 import "./Near.css";
 
 const RADII_KM = [5, 10, 15, 30];
@@ -167,7 +168,7 @@ function HomeForm({ onSave, onCancel }) {
 const HOME_SVG =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2 3.5 10v10.3h6v-6h5v6h6V10z"/></svg>';
 
-// Always on the map (registered as the tab's overlay): the home pin.
+// Always on the map (registered as the tab's overlay): the home pin and the "Co to bylo?" shortcut.
 export function HomePin() {
   const { home } = useApp();
   useMapLayer(
@@ -183,7 +184,7 @@ export function HomePin() {
     },
     [home],
   );
-  return null;
+  return <WhatWasThatFab />;
 }
 
 export default function Near() {
@@ -205,13 +206,16 @@ export default function Near() {
 
   if (!home || editing)
     return (
-      <HomeForm
-        onSave={(h) => {
-          setHome(h);
-          setEditing(false);
-        }}
-        onCancel={home ? () => setEditing(false) : null}
-      />
+      <>
+        {!editing && <WhatWasThat home={null} />}
+        <HomeForm
+          onSave={(h) => {
+            setHome(h);
+            setEditing(false);
+          }}
+          onCancel={home ? () => setEditing(false) : null}
+        />
+      </>
     );
 
   // Ground traffic (taxiing planes, airport vehicles) isn't "overhead": count it, don't list it.
@@ -221,6 +225,7 @@ export default function Near() {
 
   return (
     <div className="near">
+      <WhatWasThat home={home} />
       <div className="home-card">
         <span className="home-card__icon" aria-hidden="true">⌂</span>
         <div className="home-card__text">

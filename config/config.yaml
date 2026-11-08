@@ -43,7 +43,7 @@ history:
   stats_top_n: 10
 
 daily_summary:
-  enabled: false            # set true to send the evening summary to ntfy (NTFY_TOPIC)
+  enabled: false            # set true to send the evening summary via ntfy + Web Push
   at: "20:00"               # Europe/Prague local time
   model: claude-haiku-5-5
   effort: low
@@ -52,9 +52,16 @@ daily_summary:
   cache_minutes: 30         # /api/summary/today reuses the last text this long
   max_events: 15            # latest events of the day passed to the prompt
 
+weekly_summary:             # last 7 days; model, effort and the call cap are shared with daily_summary
+  enabled: false            # set true to send it via ntfy + Web Push
+  weekday: 6                # 0 = Monday ... 6 = Sunday
+  at: "20:30"               # Europe/Prague local time (after the daily one, so they don't arrive together)
+  cache_minutes: 60         # /api/summary/week reuses the last text this long
+
 enrich:
   route:                    # adsb.lol route API; shares politeness with the poller, so cache hard
     url: https://api.adsb.lol/api/0/routeset
+    fallback_url: https://api.adsbdb.com/v0/callsign/{callsign}   # used when adsb.lol has no route
     cache_hours: 6
     miss_cache_minutes: 60
     min_interval_s: 10
@@ -64,6 +71,12 @@ enrich:
     cache_hours: 24
     miss_cache_minutes: 360
     min_interval_s: 1
+    max_per_hour: 120
+  aircraft:                 # adsbdb.com registry: full type name, manufacturer, owner, country
+    url: https://api.adsbdb.com/v0/aircraft/{hex}
+    cache_hours: 72
+    miss_cache_minutes: 360
+    min_interval_s: 2
     max_per_hour: 120
 
 noise:                      # rough noise estimate over an address (/api/noise); see backend/noise.py
@@ -130,3 +143,130 @@ passes:                     # compact long-term pass history for flight predicti
   cluster_minutes: 45       # "similar time" = within ±45 min
   grace_minutes: 15         # also list flights due up to 15 min ago
   max_results: 30
+
+pass_alerts:                 # heads-up push/ntfy before a predicted pass (opt-in per device, backend/pass_alerts.py)
+  enabled: true
+  lead_minutes: 20          # notify when a pass is expected within this many minutes
+  min_confidence: 0.5       # skip predictions seen on fewer than half of the observed days
+  check_every_s: 60
+
+board:                      # LKPR arrivals/departures board (/api/board, backend/board.py); estimate from ADS-B
+  airport: LKPR
+  radius_km: 150            # aircraft farther away are ignored
+  ground_radius_km: 4       # "on the ground at the airport"
+  ground_max_agl_ft: 200    # numeric altitude this close to the field + slow = on the ground
+  ground_max_gs_kt: 80
+  taxi_min_kt: 5            # on the ground and faster than this = moving (taxi / take-off roll)
+  descent_fpm: 300          # baro_rate below minus this = descending
+  climb_fpm: 300            # baro_rate above this = climbing
+  arrival_max_alt_ft: 18000 # heuristic arrivals (no route) must be below this
+  approach_radius_km: 25    # level flight this close and low still counts as an arrival
+  approach_max_agl_ft: 5000
+  toward_max_deg: 60        # track within this of the bearing to the airport = heading toward it
+  departure_radius_km: 60   # heuristic departures (no route) must be this close
+  departure_max_alt_ft: 18000
+  eta_path_factor: 1.15     # real approach path is longer than the straight line
+  departed_speed_factor: 0.7  # average speed since take-off vs current gs, when the track doesn't show it
+  max_rows: 12              # per list
+  exclude_types: [TWR, GND, GRND, SERV, EMER, BALL]   # ADS-B ground vehicles/beacons, not flights
+  exclude_categories: [C0, C1, C2, C3, C4, C5]         # surface vehicles and obstacles
+  route_candidate_max_alt_ft: 25000  # only look up routes for aircraft below this (or on the ground)
+  route_lookups_per_request: 2       # background lookups started by one /api/board call
+  route_lookups_per_hour: 15         # board's own share of enrich.route's budget
+
+map_layers:                 # optional map overlays (backend/airspace.py, frontend MapLayers.jsx)
+  radar:                    # RainViewer public API, free tier: personal use, attribution required
+    url: https://api.rainviewer.com/public/weather-maps.json
+    cache_minutes: 5        # frames come every 10 min
+    color_scheme: 2         # "Universal Blue", the only scheme on the free tier
+    max_native_zoom: 7      # free tier serves real tiles up to z7; Leaflet upscales above
+    opacity: 0.6
+  airspace:                 # openAIP (CC BY-NC 4.0); OPENAIP_API_KEY in .env switches to the REST API
+    country: CZ
+    export_url: https://storage.openaip.net/openaip-system-exports/{country}_asp.geojson
+    api_url: https://api.core.openaip.net/api/airspaces
+    cache_hours: 24         # also kept on disk in data/, so restarts don't refetch
+    timeout_s: 20
+    # openAIP type codes drawn on the map -> short label. Gliding sectors, drop zones, FIR... left out.
+    types: {1: R, 2: D, 3: P, 4: CTR, 5: TMZ, 6: RMZ, 7: TMA, 8: TRA, 9: TSA, 13: ATZ, 26: CTA, 36: MCTR}
+
+what_was_that:              # "Co to bylo?" (/api/what-was-that, backend/whatwasthat.py)
+  default_window_s: 150     # "now": look this far back (the plane you just heard)
+  past_window_s: 300        # a chosen time: ± this many seconds around it
+  max_window_s: 1800
+  max_distance_km: 15       # ignore passes whose closest point is farther than this (horizontal)
+  max_gap_s: 100            # don't interpolate across a gap in the track longer than this
+  top_n: 4                  # candidates returned
+  route_top_n: 2            # route lookups (enrich.route, cached + rate limited) for the first N
+  route_timeout_s: 2.5      # answer without the route rather than wait for the rate limiter
+  path_pad_s: 120           # track returned around the closest point, for drawing on the map
+  unknown_class: regional   # noise class for aircraft without type/category (ranked, but no "heavy" claim)
+  overhead_km: 2            # closer than this (horizontal) = "nad tebou", else "kolem tebe"
+  just_now_s: 15            # closest point less than this ago = "právě teď … letí" (may still be approaching)
+  reasons:                  # why it was loud; each only when the data shows it
+    low_height_m: 1500      # height above ground below this = "letěl nízko"
+    takeoff_max_height_m: 3000   # climbing below this height = "stoupal po startu", above = "stoupal"
+    climb_ms: 2.5           # vertical speed above this = climbing (m/s)
+    close_slant_km: 2.5     # slant distance below this = "byl blízko"
+    loud_db: 65             # estimate at/above this = "proto byl tak hlasitý"
+    quiet_db: 50            # top estimate below this = admit it was probably not loud
+  type_names:               # ICAO type -> name for the sentence (interesting_types.yaml is used too)
+    A318: Airbus A318
+    A319: Airbus A319
+    A320: Airbus A320
+    A321: Airbus A321
+    A19N: Airbus A319neo
+    A20N: Airbus A320neo
+    A21N: Airbus A321neo
+    A332: Airbus A330
+    A333: Airbus A330
+    A339: Airbus A330neo
+    A343: Airbus A340
+    A359: Airbus A350
+    A35K: Airbus A350-1000
+    BCS1: Airbus A220
+    BCS3: Airbus A220
+    B733: Boeing 737
+    B734: Boeing 737
+    B737: Boeing 737
+    B738: Boeing 737
+    B739: Boeing 737
+    B37M: Boeing 737 MAX
+    B38M: Boeing 737 MAX
+    B39M: Boeing 737 MAX
+    B752: Boeing 757
+    B763: Boeing 767
+    B772: Boeing 777
+    B77L: Boeing 777
+    B77W: Boeing 777
+    B778: Boeing 777X
+    B779: Boeing 777X
+    B788: Boeing 787
+    B789: Boeing 787
+    B78X: Boeing 787
+    E170: Embraer 170
+    E175: Embraer 175
+    E190: Embraer 190
+    E195: Embraer 195
+    E290: Embraer 190-E2
+    E295: Embraer 195-E2
+    CRJ9: Bombardier CRJ900
+    AT72: ATR 72
+    AT75: ATR 72
+    AT76: ATR 72
+    DH8D: Dash 8
+    MD11: McDonnell Douglas MD-11
+    C172: Cessna 172
+    C152: Cessna 152
+    C182: Cessna 182
+    P28A: Piper PA-28
+    DA40: Diamond DA40
+    DA42: Diamond DA42
+    SR22: Cirrus SR22
+    PC12: Pilatus PC-12
+    L410: Let L-410
+    EC35: Airbus H135
+    H135: Airbus H135
+    EC45: Airbus H145
+    H145: Airbus H145
+    A139: Leonardo AW139

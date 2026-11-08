@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
-import { EMERGENCY_SQUAWKS, PLANE_SVG, altitudeHue, callsign, isGround } from "./aircraft.js";
+import { AIRCRAFT_ICONS, EMERGENCY_SQUAWKS, aircraftKind, altitudeHue, callsign, isGround } from "./aircraft.js";
 
 const CZ_BOUNDS = [[48.55, 12.09], [51.06, 18.86]];
 
@@ -29,7 +29,23 @@ export function visiblePadding() {
 
 // Plain Leaflet in refs; no wrapper library. Markers are created once per aircraft and updated in place.
 // Feature overlays get the Leaflet instance through onReady (see state.jsx), so they never need to edit this file.
-export default function Map({ aircraft, selectedHex, onSelect, onReady }) {
+// From this zoom up, every plane carries a small data label (selected plane always does).
+const LABEL_ZOOM = 9;
+const fmt = (n) => Math.round(n).toLocaleString("cs-CZ");
+
+// Second label line: altitude, speed and a climb/descent arrow, metric.
+function labelInfo(a) {
+  if (isGround(a)) return "na zemi";
+  const parts = [];
+  if (typeof a.alt_baro === "number") {
+    const arrow = a.baro_rate > 500 ? "↑" : a.baro_rate < -500 ? "↓" : "";
+    parts.push(`${arrow}${fmt(Math.round((a.alt_baro * 0.3048) / 10) * 10)} m`);
+  }
+  if (a.gs != null) parts.push(`${fmt(a.gs * 1.852)} km/h`);
+  return parts.join(" · ");
+}
+
+export default function Map({ aircraft, selectedHex, onSelect, onReady, dimmed }) {
   const el = useRef(null);
   const mapRef = useRef(null);
   const markers = useRef(new globalThis.Map()); // hex -> { marker, rot }
@@ -52,6 +68,7 @@ export default function Map({ aircraft, selectedHex, onSelect, onReady }) {
     const sizeIcons = () => {
       const z = map.getZoom();
       box.style.setProperty("--ac", `${z <= 6 ? 15 : z === 7 ? 18 : 22}px`);
+      box.classList.toggle("z-labels", z >= LABEL_ZOOM);
     };
     sizeIcons();
     map.on("zoomstart", () => box.classList.remove("glide"));
@@ -82,7 +99,7 @@ export default function Map({ aircraft, selectedHex, onSelect, onReady }) {
       let entry = markers.current.get(a.hex);
       if (!entry) {
         const marker = L.marker([a.lat, a.lon], {
-          icon: L.divIcon({ className: "ac-marker", html: `<div class="ac">${PLANE_SVG}</div>`, iconSize: [32, 32] }),
+          icon: L.divIcon({ className: "ac-marker", html: `<div class="ac"></div><div class="ac-lbl"><b></b> <small></small><span></span></div>`, iconSize: [32, 32] }),
           keyboard: false,
         })
           .bindTooltip("", { direction: "top", offset: [0, -14], className: "ac-tip" })
@@ -97,6 +114,21 @@ export default function Map({ aircraft, selectedHex, onSelect, onReady }) {
       }
 
       const node = entry.marker.getElement()?.firstChild;
+      const lbl = node?.nextSibling;
+      // Icon by kind of aircraft; the category can arrive a snapshot later, so re-check each time.
+      const kind = aircraftKind(a);
+      if (node && node.dataset.kind !== kind) {
+        node.innerHTML = AIRCRAFT_ICONS[kind];
+        node.dataset.kind = kind;
+        node.classList.toggle("ac--heavy", kind === "heavy");
+      }
+      if (lbl) {
+        // textContent only: callsigns and types come from external data.
+        const [name, type, info] = lbl.querySelectorAll("b, small, span");
+        name.textContent = callsign(a);
+        type.textContent = a.t || "";
+        info.textContent = labelInfo(a);
+      }
       if (node) {
         const hue = altitudeHue(a);
         node.style.setProperty("--rot", `${entry.rot}deg`);
@@ -114,6 +146,11 @@ export default function Map({ aircraft, selectedHex, onSelect, onReady }) {
       }
     }
   }, [aircraft]);
+
+  // Map filter hook: dim planes the filter (Filters.jsx via state.jsx) doesn't match. `dimmed` = Set of hex or null.
+  useEffect(() => {
+    for (const [hex, { marker }] of markers.current) marker.getElement()?.firstChild.classList.toggle("ac--dim", Boolean(dimmed?.has(hex)));
+  }, [aircraft, dimmed]);
 
   // Highlight the selected plane and keep it out from under the panel.
   useEffect(() => {
