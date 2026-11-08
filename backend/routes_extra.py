@@ -1,4 +1,4 @@
-"""Extra endpoints: position history playback, stats, daily summary preview, route/photo/trail."""
+"""Extra endpoints: position history playback, stats, predictions, summary previews, route/photo/trail."""
 
 import asyncio
 import re
@@ -17,15 +17,16 @@ _poller = None
 _stats_cache: dict[int, tuple[float, dict]] = {}
 
 
-def start(poller) -> asyncio.Task | None:
-    """Call from the API lifespan: registers the history recorder, starts the daily summary loop."""
+def start(poller) -> asyncio.Future | None:
+    """Call from the API lifespan: registers the recorders, starts the enabled summary loops.
+    Returns one cancellable future (or None when no loop is enabled)."""
     global _poller
     _poller = poller
     poller.listeners.append(history.Recorder(poller.db))
     poller.listeners.append(passes.PassRecorder(poller.db))
-    if CONFIG["daily_summary"]["enabled"]:
-        return asyncio.create_task(summary.run_daily(poller.db))
-    return None
+    loops = [summary.run_loop(poller.db, kind) for kind, section in (("day", "daily_summary"),
+             ("week", "weekly_summary")) if CONFIG[section]["enabled"]]
+    return asyncio.gather(*loops) if loops else None
 
 
 @router.get("/history")
@@ -65,6 +66,12 @@ async def summary_today():
     return await summary.generate(_poller.db)
 
 
+@router.get("/summary/week")
+async def summary_week():
+    """Preview of the last 7 days' summary (not sent). Same shape as /summary/today, kind "week"."""
+    return await summary.generate(_poller.db, kind="week")
+
+
 CALLSIGN = re.compile(r"^[A-Z0-9]{2,8}$")
 
 
@@ -84,6 +91,9 @@ async def get_route(callsign: str):
         r = await enrich.route(callsign, lat, lon)
     except enrich.Unavailable:
         raise HTTPException(503, "Trasu letu teď nejde zjistit, zkus to prosím později.")
+    if r and not r.get("airline_name"):
+        code = r.get("airline_code") or (m.group(1) if (m := history.AIRLINE_CALLSIGN.match(callsign)) else None)
+        r = {**r, "airline_name": history.AIRLINES.get(code)}
     return {"callsign": callsign, "known": r is not None, "route": r}
 
 
@@ -109,3 +119,54 @@ def get_trail(hex_id: str):
         "points": [[round(s["ts"], 1), s["lat"], s["lon"], s.get("alt_baro"), s.get("track"), s.get("gs")]
                    for s in track],
     }
+
+
+HEX_ID = re.compile(r"^~?[0-9a-f]{6}$")
+_type_cache: dict[str, tuple[float, dict]] = {}
+
+
+def type_seen(conn, t: str, now: float) -> dict:
+    """How common an ICAO type is here: distinct aircraft in the last 24 h and when we first saw it."""
+    hit = _type_cache.get(t)
+    if hit and now - hit[0] < 600:
+        return hit[1]
+    n = conn.execute("SELECT COUNT(DISTINCT hex) FROM positions WHERE ts >= ? AND t = ?",
+                     (int(now) - 86400, t)).fetchone()[0]
+    row = conn.execute("SELECT first_seen FROM seen_types WHERE type = ?", (t,)).fetchone()
+    result = {"type": t, "aircraft_24h": n, "first_seen": row[0] if row else None}
+    _type_cache[t] = (now, result)
+    return result
+
+
+@router.get("/aircraft/{hex_id}")
+def get_aircraft(hex_id: str):
+    """Full live readsb record of one aircraft (IAS/TAS/Mach, wind, OAT, autopilot altitude, ...) + type stats."""
+    hex_id = hex_id.lower()
+    if not HEX_ID.match(hex_id):
+        raise HTTPException(422, "Neplatný hex.")
+    rec = next((a for a in (_poller.latest or {}).get("ac", []) if a.get("hex") == hex_id), None)
+    if rec is None:
+        raise HTTPException(404, "Letadlo teď není v datech.")
+    return {"now": _poller.latest["now"], "aircraft": rec, "type_stats": type_seen(_poller.db, rec["t"], time.time()) if rec.get("t") else None}
+
+
+@router.get("/registry/{hex_id}")
+async def get_registry(hex_id: str):
+    """Registry data from adsbdb.com. The owner is never returned for LADD/PIA aircraft (dbFlags & 12)."""
+    hex_id = hex_id.lower()
+    if not HEX_ID.match(hex_id) or hex_id.startswith("~"):
+        raise HTTPException(422, "Neplatný hex.")
+    rec = next((a for a in (_poller.latest or {}).get("ac", []) if a.get("hex") == hex_id), {})
+    try:
+        info = await enrich.aircraft(hex_id)
+    except enrich.Unavailable:
+        raise HTTPException(503, "Údaje o letadle teď nejde zjistit.")
+    return {"hex": hex_id, "info": privacy_filter(info, rec.get("dbFlags") or 0)}
+
+
+def privacy_filter(info: dict | None, db_flags: int) -> dict | None:
+    """Drop owner identity for LADD (8) / PIA (4) aircraft."""
+    if not info or not db_flags & 12:
+        return info
+    return {**info, "owner": None, "owner_country": None, "owner_country_iso": None, "operator_code": None,
+            "registration": None}

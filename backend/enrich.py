@@ -1,10 +1,11 @@
-"""Detail enrichment: flight route (adsb.lol routeset) and aircraft photo (planespotters.net).
+"""Detail enrichment: flight route (adsb.lol routeset, adsbdb.com fallback) and aircraft photo (planespotters.net).
 
 Both are cached hard and throttled; results (including "unknown") are cached so the UI
 never makes us hit the upstream in a loop.
 """
 
 import asyncio
+import math
 import logging
 import os
 import re
@@ -67,6 +68,7 @@ class Upstream:
 
 routes = Upstream("route")
 photos = Upstream("photo")
+registry = Upstream("aircraft")
 
 
 # ---------- route ----------
@@ -98,6 +100,60 @@ def parse_route(data, callsign: str) -> dict | None:
     return None
 
 
+def parse_adsbdb(data, lat: float, lon: float) -> dict | None:
+    """adsbdb.com /v0/callsign response -> same shape as parse_route. adsbdb has no plausibility
+    check, so we call a route plausible when the aircraft lies roughly on the way between the two airports."""
+    resp = data.get("response") if isinstance(data, dict) else None   # a string like "unknown callsign" on a miss
+    fr = resp.get("flightroute") if isinstance(resp, dict) else None
+    if not isinstance(fr, dict) or not fr.get("origin") or not fr.get("destination"):
+        return None
+
+    def ap(a):
+        return {"icao": a.get("icao_code"), "iata": a.get("iata_code"), "name": a.get("name"),
+                "location": a.get("municipality"), "countryiso2": a.get("country_iso_name"),
+                "lat": a.get("latitude"), "lon": a.get("longitude")}
+
+    o, d = ap(fr["origin"]), ap(fr["destination"])
+    plausible = None not in (o["lat"], o["lon"], d["lat"], d["lon"])
+    if plausible:
+        direct = _km(o["lat"], o["lon"], d["lat"], d["lon"])
+        plausible = _km(o["lat"], o["lon"], lat, lon) + _km(lat, lon, d["lat"], d["lon"]) <= direct * 1.3 + 150
+    return {
+        "callsign": (fr.get("callsign_icao") or fr.get("callsign") or "").upper(),
+        "airline_code": (fr.get("airline") or {}).get("icao"),
+        "airline_name": (fr.get("airline") or {}).get("name"),
+        "origin": o, "destination": d, "stops": [],
+        "codes": "-".join(a["iata"] or a["icao"] or "?" for a in (o, d)),
+        "plausible": plausible,
+    }
+
+
+def _km(lat1, lon1, lat2, lon2) -> float:
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    a = math.sin((p2 - p1) / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(math.radians(lon2 - lon1) / 2) ** 2
+    return 2 * 6371 * math.asin(math.sqrt(a))
+
+
+async def _adsbdb_route(client, callsign: str, lat: float, lon: float) -> dict | None:
+    """Fallback source when adsb.lol has no route. Failures here just mean 'no route'."""
+    url = routes.cfg.get("fallback_url")
+    if not url:
+        return None
+    try:
+        if client:
+            r = await client.get(url.format(callsign=callsign))
+        else:
+            async with httpx.AsyncClient(timeout=10, headers={"User-Agent": user_agent()}) as c:
+                r = await c.get(url.format(callsign=callsign))
+        if r.status_code == 404:
+            return None
+        r.raise_for_status()
+        return parse_adsbdb(r.json(), lat, lon)
+    except (httpx.HTTPError, ValueError) as e:
+        log.warning("adsbdb route lookup failed for %s: %s", callsign, e)
+        return None
+
+
 async def route(callsign: str, lat: float, lon: float, client: httpx.AsyncClient | None = None) -> dict | None:
     callsign = callsign.strip().upper()
     hit, value = routes.cached(callsign)
@@ -116,6 +172,8 @@ async def route(callsign: str, lat: float, lon: float, client: httpx.AsyncClient
             r.raise_for_status()
             # The API sometimes answers with an empty body for unknown callsigns.
             value = parse_route(r.json() if r.content.strip() else None, callsign)
+            if value is None:
+                value = await _adsbdb_route(client, callsign, lat, lon)
         except (httpx.HTTPError, ValueError) as e:
             log.warning("route lookup failed for %s: %s", callsign, e)
             raise Unavailable() from e     # don't cache transient failures, but don't retry now either
@@ -185,4 +243,57 @@ async def photo(key: str, client: httpx.AsyncClient | None = None) -> dict | Non
             log.warning("photo lookup failed for %s: %s", cache_key, e)
             raise Unavailable() from e
         photos.store(cache_key, value)
+        return value
+
+
+# ---------- aircraft registry (adsbdb.com) ----------
+
+def parse_aircraft(data) -> dict | None:
+    """adsbdb.com /v0/aircraft response -> type, manufacturer, owner and country, or None ("unknown aircraft")."""
+    resp = data.get("response") if isinstance(data, dict) else None
+    a = resp.get("aircraft") if isinstance(resp, dict) else None
+    if not isinstance(a, dict):
+        return None
+    value = {
+        "type": a.get("type"),                  # e.g. "737NG 8AS/W"
+        "icao_type": a.get("icao_type"),
+        "manufacturer": a.get("manufacturer"),
+        "registration": a.get("registration"),
+        "owner": a.get("registered_owner"),
+        "owner_country": a.get("registered_owner_country_name"),
+        "owner_country_iso": a.get("registered_owner_country_iso_name"),
+        "operator_code": a.get("registered_owner_operator_flag_code"),
+    }
+    return value if any(value.values()) else None
+
+
+async def aircraft(hex_id: str, client: httpx.AsyncClient | None = None) -> dict | None:
+    """Registry data for an ICAO hex. Same politeness as route(): cached, spaced, capped per hour."""
+    hex_id = hex_id.strip().lower()
+    hit, value = registry.cached(hex_id)
+    if hit:
+        return value
+    async with registry.lock:
+        hit, value = registry.cached(hex_id)
+        if hit:
+            return value
+        await registry.slot()
+        try:
+            url = registry.cfg["url"].format(hex=hex_id)
+            if client:
+                r = await client.get(url)
+            else:
+                async with httpx.AsyncClient(timeout=10, headers={"User-Agent": user_agent()}) as c:
+                    r = await c.get(url)
+            if r.status_code == 429:
+                raise Unavailable()
+            if r.status_code == 404:        # adsbdb answers 404 + "unknown aircraft"
+                value = None
+            else:
+                r.raise_for_status()
+                value = parse_aircraft(r.json())
+        except (httpx.HTTPError, ValueError) as e:
+            log.warning("aircraft lookup failed for %s: %s", hex_id, e)
+            raise Unavailable() from e
+        registry.store(hex_id, value)
         return value

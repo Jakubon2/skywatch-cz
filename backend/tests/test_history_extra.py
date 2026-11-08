@@ -8,6 +8,7 @@ import pytest
 import db
 import enrich
 import history
+import passes
 import summary
 from explain import PRAGUE
 
@@ -27,6 +28,7 @@ def snap(ts, ac):
 def conn():
     c = db.connect(":memory:")
     history.init(c)
+    passes.init(c)
     return c
 
 
@@ -154,12 +156,53 @@ def test_summary_facts_and_schedule(conn):
 
 
 def test_summary_without_api_call(conn, monkeypatch):
-    async def fake(facts):
-        return "Dnes byl klidný den."
+    kinds = []
+
+    async def fake(facts, kind="day"):
+        kinds.append(kind)
+        return "Dnes byl klidný den." if kind == "day" else "Klidný týden."
     monkeypatch.setattr(summary, "_ask_claude", fake)
     summary._cache.clear()
-    r = asyncio.run(summary.generate(conn, datetime(2026, 11, 8, 20, 0, tzinfo=PRAGUE)))
-    assert r["text"] == "Dnes byl klidný den." and r["day"] == "2026-11-08"
+    now = datetime(2026, 11, 8, 20, 0, tzinfo=PRAGUE)
+    r = asyncio.run(summary.generate(conn, now))
+    assert r["text"] == "Dnes byl klidný den." and r["day"] == "2026-11-08" and r["kind"] == "day"
+    w = asyncio.run(summary.generate(conn, now, kind="week"))
+    assert w["text"] == "Klidný týden." and w["kind"] == "week"
+    # Both cached separately: no further calls
+    asyncio.run(summary.generate(conn, now))
+    asyncio.run(summary.generate(conn, now, kind="week"))
+    assert kinds == ["day", "week"]
+
+
+def test_week_facts(conn):
+    now = datetime(2026, 11, 8, 20, 0, tzinfo=PRAGUE)   # Sunday
+    rec = passes.PassRecorder(conn)
+    for days_ago, flights in ((0, ["CSA1", "RYR2"]), (2, ["CSA1"]), (9, ["OLD1"])):
+        t = now.timestamp() - days_ago * 86400 - 3600
+        rec.record({"now": t * 1000, "ac": [plane(f, flight=f, t="A320") for f in flights]})
+    db.insert_event(conn, {"type": "holding", "hex": "a1", "callsign": "CSA1", "aircraft_type": "A320",
+                           "lat": 50, "lon": 14, "alt_ft": 5000, "started_at": iso(now.timestamp() - 2 * 86400),
+                           "data": {}})
+    db.insert_event(conn, {"type": "holding", "hex": "a1", "callsign": "CSA1", "aircraft_type": "A320",
+                           "lat": 50, "lon": 14, "alt_ft": 5000, "started_at": iso(now.timestamp() - 9 * 86400),
+                           "data": {}})
+    f = summary.build_week_facts(conn, now)
+    assert f["obdobi"] == {"od": "2026-11-02", "do": "2026-11-08"}
+    assert [d["letu"] for d in f["dny"]] == [0, 0, 0, 0, 1, 0, 2]
+    assert f["dny"][-1]["hodin_zaznamu"] == 1 and f["dny"][0]["hodin_zaznamu"] == 0
+    assert f["letu_celkem"] == 3 and f["nejrusnejsi_den"] == {"datum": "2026-11-08", "letu": 2}
+    assert f["top_aerolinky"][0] == {"kod": "CSA", "nazev": "Czech Airlines", "letu": 2}
+    assert f["udalosti_celkem"] == 1 and f["udalosti"][0]["kdy"] == "6. 11. 20:00"
+    json.dumps(f, ensure_ascii=False)
+
+
+def test_weekly_schedule():
+    sat = datetime(2026, 11, 7, 21, 0, tzinfo=PRAGUE)
+    assert summary.next_run(sat, "20:30", 6) == datetime(2026, 11, 8, 20, 30, tzinfo=PRAGUE)
+    sun_late = datetime(2026, 11, 8, 20, 30, tzinfo=PRAGUE)
+    assert summary.next_run(sun_late, "20:30", 6) == datetime(2026, 11, 15, 20, 30, tzinfo=PRAGUE)
+    # Across the DST change (25 Oct 2026): still 20:30 local
+    assert summary.next_run(datetime(2026, 10, 24, 21, 0, tzinfo=PRAGUE), "20:30", 6).hour == 20
 
 
 # ---------- route / photo ----------
@@ -265,3 +308,19 @@ def test_photo_needs_contact(monkeypatch):
     enrich.photos.cache.clear()
     with pytest.raises(enrich.Unavailable):
         asyncio.run(enrich.photo("49d3a1"))
+
+
+ADSBDB = {"response": {"flightroute": {
+    "callsign_icao": "TVS1234", "airline": {"icao": "TVS"},
+    "origin": {"icao_code": "LKPR", "iata_code": "PRG", "name": "Prague", "municipality": "Prague",
+               "country_iso_name": "CZ", "latitude": 50.1, "longitude": 14.26},
+    "destination": {"icao_code": "HEGN", "iata_code": "HRG", "name": "Hurghada", "municipality": "Hurghada",
+                    "country_iso_name": "EG", "latitude": 27.18, "longitude": 33.8}}}}
+
+
+def test_parse_adsbdb_route_and_plausibility():
+    on_way = enrich.parse_adsbdb(ADSBDB, 47.5, 19.0)          # over Budapest
+    assert on_way["origin"]["icao"] == "LKPR" and on_way["destination"]["icao"] == "HEGN"
+    assert on_way["codes"] == "PRG-HRG" and on_way["plausible"] is True
+    assert enrich.parse_adsbdb(ADSBDB, 55.7, 12.6)["plausible"] is False   # over Copenhagen
+    assert enrich.parse_adsbdb({"response": "unknown callsign"}, 50, 14) is None

@@ -1,0 +1,263 @@
+/* Aircraft detail enrichment: photo, route, map trail. Base detail styles live in styles.css. */
+
+/* ---------- Photo ---------- */
+
+.photo {
+  position: relative;
+  margin: 14px 0 0;
+  aspect-ratio: 3 / 2;
+  border-radius: 16px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+.photo a { display: block; height: 100%; }
+.photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s;
+}
+.photo[data-loading] img { opacity: 0; }
+.photo[data-loading]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--text) 6%, transparent) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+.photo figcaption {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  max-width: calc(100% - 16px);
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.photo figcaption a { display: inline; color: inherit; }
+
+.photo--none {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  aspect-ratio: 3 / 1;
+  color: var(--muted);
+  font-size: 13px;
+  background:
+    radial-gradient(120% 140% at 50% 0%, var(--accent-soft), transparent 70%),
+    color-mix(in srgb, var(--text) 4%, transparent);
+}
+.photo--none svg {
+  width: 30px;
+  height: 30px;
+  fill: color-mix(in srgb, var(--accent) 55%, transparent);
+  transform: rotate(45deg);
+}
+
+/* ---------- Route ---------- */
+
+.route {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+}
+.route__ap { display: flex; flex-direction: column; min-width: 0; }
+.route__ap--to { text-align: right; }
+.route__ap b { font-size: 22px; font-weight: 700; letter-spacing: 0.02em; line-height: 1.15; }
+.route__ap span, .route__ap small {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.route__ap span { font-size: 13px; }
+.route__ap small, .route__mid small { color: var(--muted); font-size: 11px; }
+
+.route__mid {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  width: 64px;
+}
+.route__line {
+  display: block;
+  width: 100%;
+  height: 0;
+  border-top: 2px dashed color-mix(in srgb, var(--muted) 50%, transparent);
+}
+.route__mid svg {
+  position: absolute;
+  top: -10px;
+  width: 20px;
+  height: 20px;
+  padding: 1px;
+  fill: var(--accent);
+  transform: rotate(90deg);
+  background: var(--surface-strong);
+  border-radius: 50%;
+}
+.route__mid small { margin-top: 12px; white-space: nowrap; }
+.route__note { grid-column: 1 / -1; margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+
+.route--unknown { display: flex; gap: 10px; padding: 10px 14px; }
+.route--unknown .route__line { width: 18px; flex: none; }
+.route--unknown p { margin: 0; color: var(--muted); font-size: 13px; }
+
+.route--loading {
+  height: 76px;
+  background:
+    linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--text) 6%, transparent) 50%, transparent 70%) 0 0 / 200% 100%,
+    color-mix(in srgb, var(--text) 5%, transparent);
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* ---------- Trail on the map ---------- */
+
+.leaflet-overlay-pane path.trail-halo {
+  stroke: var(--plane-stroke);
+  stroke-width: 6;
+  stroke-opacity: 0.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+.leaflet-overlay-pane path.trail-seg {
+  stroke: hsl(var(--h) 85% var(--plane-l));
+  stroke-width: 3.5;
+  stroke-opacity: var(--o, 1);
+  stroke-linecap: round;
+  fill: none;
+}
+.leaflet-overlay-pane path.trail-seg--ground { stroke: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  .photo[data-loading]::after, .route--loading { animation: none; }
+}
+
+/* ---------- Richer detail: phase badge, airline, progress, facts ---------- */
+
+.badge--phase { background: color-mix(in srgb, var(--text) 7%, transparent); color: var(--text); }
+
+.route__airline {
+  grid-column: 1 / -1;
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.route__progress { grid-column: 1 / -1; margin-top: 10px; }
+.route__bar {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--muted) 22%, transparent);
+}
+.route__bar span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--p) * 100%);
+  border-radius: inherit;
+  background: var(--accent);
+}
+.route__bar span::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  top: -3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--surface-strong);
+}
+.route__progress p {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.route__progress .route__eta { display: block; color: var(--text); font-size: 13px; font-weight: 600; margin-top: 4px; }
+.route__eta small { display: block; color: var(--muted); font-size: 11px; font-weight: 400; }
+
+.facts { margin-top: 16px; }
+.facts h4, .facts__toggle {
+  margin: 0 2px 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.facts dl {
+  margin: 0;
+  padding: 2px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+}
+.facts__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 0;
+}
+.facts__row + .facts__row { border-top: 1px solid var(--border); }
+.facts__row dt { flex: none; color: var(--muted); font-size: 13px; }
+.facts__row dd {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.facts__row dd small { color: var(--muted); font-size: 12px; font-weight: 400; }
+
+.facts__toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 2px;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+.facts__toggle:hover { color: var(--text); }
+.facts__toggle svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s;
+}
+.facts__toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
