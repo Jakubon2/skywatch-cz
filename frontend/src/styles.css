@@ -1,0 +1,492 @@
+/* Mobile first: full-screen map + bottom sheet. From 960px: floating side panel. */
+
+:root {
+  --bg: #eef2f7;
+  --surface: rgba(255, 255, 255, 0.84);
+  --surface-strong: #ffffff;
+  --border: rgba(15, 23, 42, 0.08);
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #0d9488;
+  --accent-soft: rgba(13, 148, 136, 0.12);
+  --danger: #dc2626;
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06);
+  --radius: 20px;
+  --gap: 12px;
+  --peek: calc(74px + env(safe-area-inset-bottom));
+  --plane-l: 42%;          /* lightness of altitude-coloured planes */
+  --plane-stroke: #ffffff; /* halo that separates planes from the map */
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1220;
+    --surface: rgba(15, 23, 42, 0.78);
+    --surface-strong: #0f172a;
+    --border: rgba(148, 163, 184, 0.14);
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #5eead4;
+    --accent-soft: rgba(94, 234, 212, 0.12);
+    --danger: #f87171;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+    --plane-l: 68%;
+    --plane-stroke: #0b1220;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; margin: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app { position: fixed; inset: 0; overflow: hidden; }
+
+.map { position: absolute; inset: 0; }
+.leaflet-container { background: var(--bg); font: inherit; }
+
+/* Mute the colourful OSM style so aircraft stand out.
+   Filter per tile, not on the pane: a pane-level filter shows seams between tiles. */
+.leaflet-tile { filter: grayscale(0.85) contrast(0.92) brightness(1.04); }
+@media (prefers-color-scheme: dark) {
+  .leaflet-tile { filter: invert(1) hue-rotate(180deg) grayscale(0.7) brightness(0.82) contrast(0.95); }
+}
+
+
+/* ---------- Top bar ---------- */
+
+.topbar {
+  position: absolute;
+  z-index: 1000;
+  top: calc(env(safe-area-inset-top) + var(--gap));
+  left: calc(env(safe-area-inset-left) + var(--gap));
+  right: calc(env(safe-area-inset-right) + var(--gap));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+}
+.topbar > * { pointer-events: auto; }
+
+.brand, .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+}
+.brand { padding-left: 8px; font-size: 16px; letter-spacing: -0.01em; }
+.brand img { border-radius: 8px; }
+.brand b { color: var(--accent); font-weight: 700; }
+
+.pill { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pill--live { color: var(--text); font-weight: 600; }
+.pill--off { color: var(--danger); }
+
+.dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 var(--accent);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); }
+  70% { box-shadow: 0 0 0 8px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+/* ---------- Panel: bottom sheet on mobile ---------- */
+
+.panel {
+  position: absolute;
+  z-index: 1000;
+  left: 0; right: 0; bottom: 0;
+  height: min(72dvh, 640px);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  transform: translateY(calc(100% - var(--peek)));
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.panel--open { transform: translateY(0); }
+
+.panel__handle { flex: none; padding: 0 12px 10px; }
+.panel__grab {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.grabber { width: 36px; height: 5px; border-radius: 3px; background: var(--muted); opacity: 0.4; }
+
+.panel__body { flex: 1; overflow-y: auto; padding: 4px 16px 16px; overscroll-behavior: contain; }
+
+.panel__footer {
+  flex: none;
+  padding: 10px 20px calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.empty { text-align: center; padding: 32px 12px; color: var(--muted); }
+.empty p { margin: 0 auto; max-width: 28ch; }
+.empty__icon {
+  display: grid; place-items: center;
+  width: 56px; height: 56px; margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 24px;
+}
+.empty__title { color: var(--text); font-weight: 650; font-size: 17px; margin-bottom: 6px !important; }
+
+/* ---------- Leaflet controls ---------- */
+
+.leaflet-control-zoom { display: none; }
+
+/* Keep the map attribution above the collapsed sheet. */
+.leaflet-bottom { bottom: var(--peek); }
+
+.leaflet-control-attribution.leaflet-control {
+  margin: 0 8px 8px 0;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.leaflet-control-attribution a { color: inherit; }
+
+/* ---------- Aircraft markers ---------- */
+
+.ac-marker { background: none; border: 0; }
+.glide .ac-marker { transition: transform 10s linear; } /* glide between 10 s snapshots */
+
+.ac {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  transform: rotate(var(--rot, 0deg));
+  transition: transform 0.8s ease;
+  cursor: pointer;
+}
+.ac svg {
+  width: var(--ac, 22px);
+  height: var(--ac, 22px);
+  fill: hsl(var(--h) 85% var(--plane-l));
+  stroke: var(--plane-stroke);
+  stroke-width: 1.4;
+  paint-order: stroke;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+  transition: width 0.2s, height 0.2s;
+}
+.ac--ground svg { width: calc(var(--ac, 22px) * 0.7); height: calc(var(--ac, 22px) * 0.7); fill: var(--muted); }
+.ac--emg svg { fill: var(--danger); }
+
+.ac--sel svg { width: calc(var(--ac, 22px) + 8px); height: calc(var(--ac, 22px) + 8px); }
+.ac--sel::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: var(--accent-soft);
+  animation: ring 2s ease-out infinite;
+}
+@keyframes ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
+  100% { box-shadow: 0 0 0 12px transparent; }
+}
+
+.leaflet-tooltip.ac-tip {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-strong);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+}
+.leaflet-tooltip.ac-tip::before { display: none; }
+
+/* ---------- Aircraft detail ---------- */
+
+.panel--detail { height: auto; max-height: min(72dvh, 640px); }
+
+.detail { padding: 4px 4px 8px; }
+.detail__head { display: flex; align-items: center; gap: 12px; }
+.detail__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: hsl(var(--h) 85% var(--plane-l) / 0.14);
+  color: hsl(var(--h) 85% var(--plane-l));
+  font-size: 22px;
+}
+.detail__icon[data-ground] { background: var(--accent-soft); color: var(--muted); }
+.detail__title { flex: 1; min-width: 0; }
+.detail__title h3 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+.detail__title p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+
+.icon-btn {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.icon-btn:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge--accent { color: var(--accent); }
+.badge--danger { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 16px;
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+}
+.stat__label { color: var(--muted); font-size: 12px; }
+.stat__value { margin-top: 2px; font-size: 18px; font-weight: 650; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.stat__sub { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+.detail__hex { margin: 14px 2px 0; color: var(--muted); font-size: 12px; letter-spacing: 0.04em; }
+
+/* ---------- Desktop ---------- */
+
+@media (min-width: 960px) {
+  :root { --gap: 16px; --panel-w: 380px; }
+
+  .topbar { right: auto; width: var(--panel-w); }
+
+  .panel {
+    top: calc(var(--gap) + 44px + 12px);
+    left: var(--gap);
+    right: auto;
+    bottom: var(--gap);
+    width: var(--panel-w);
+    height: auto;
+    border-radius: var(--radius);
+    border-bottom: 1px solid var(--border);
+    transform: none;
+    transition: none;
+  }
+  .panel__handle { padding: 12px 12px 8px; }
+  .panel__grab { display: none; }
+  .panel__footer { padding-bottom: 12px; }
+
+  .leaflet-bottom { bottom: 0; }
+  .leaflet-control-zoom { display: block; }
+  .leaflet-control-zoom.leaflet-bar {
+    margin: var(--gap) var(--gap) 0 0;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .leaflet-control-zoom a {
+    width: 40px; height: 40px; line-height: 40px;
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+    backdrop-filter: blur(18px);
+  }
+  .leaflet-control-zoom a:hover { background: var(--surface-strong); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot, .ac--sel::before { animation: none; }
+  .panel, .ac, .glide .ac-marker { transition: none; }
+}
+
+/* ---------- Navigation: segmented tabs in the sheet handle ---------- */
+
+.seg {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+.seg button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  height: 38px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 11px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.seg button:hover { color: var(--text); }
+.seg button.is-active {
+  background: var(--surface-strong);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12), 0 0 0 1px var(--border);
+}
+.seg svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.seg button.is-active svg { stroke: var(--accent); }
+.seg--small button { height: 32px; font-size: 13px; }
+
+/* 4+ tabs: icon above a small label, so 5 fit on a 375px phone. */
+.tabs { position: relative; z-index: 5; }
+.tabs--compact button { flex-direction: column; gap: 2px; height: 48px; padding: 0 2px; font-size: 11px; overflow: hidden; }
+.tabs--compact svg { width: 20px; height: 20px; }
+
+.tabs__backdrop { position: fixed; inset: 0; z-index: 1; }
+.tabs__menu {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 200px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
+}
+.tabs .tabs__menu button {
+  flex-direction: row;
+  width: 100%;
+  justify-content: flex-start;
+  gap: 12px;
+  height: 44px;
+  padding: 0 12px;
+  font-size: 15px;
+}
+.tabs .tabs__menu svg { width: 20px; height: 20px; }
+.tabs__menu button.is-active { box-shadow: none; background: var(--accent-soft); }
+.tabs__more:not(.is-active) svg { stroke-width: 3.4; }
+
+.section-title { margin: 6px 4px 0; font-size: 16px; font-weight: 650; letter-spacing: -0.01em; }
+
+/* ---------- Buttons and form bits ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.btn:disabled { opacity: 0.55; cursor: default; }
+.btn--primary { background: var(--accent); color: var(--surface-strong); }
+.btn--ghost { background: none; box-shadow: inset 0 0 0 1px var(--border); color: var(--text); }
+.btn--ghost:not(:disabled):hover { background: var(--accent-soft); }
+.btn--link { background: none; color: var(--muted); font-weight: 500; }
+.btn--small { height: 32px; padding: 0 12px; border-radius: 10px; font-size: 13px; }
+.btn--block { width: 100%; }
+.empty .btn { margin-top: 16px; }
+
+input[type="search"], textarea {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-strong);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px; /* 16px stops iOS from zooming in on focus */
+  outline: none;
+}
+input[type="search"]:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+input::placeholder, textarea::placeholder { color: var(--muted); }
+
+.form-note { margin: 10px 4px 0; color: var(--muted); font-size: 13px; }
+.form-note--error { color: var(--danger); }
+.form-note--small { margin-top: 18px; text-align: center; font-size: 12px; opacity: 0.8; }
+
+@media (min-width: 960px) {
+  .panel--detail { max-height: none; }
+  .panel--detail .panel__body { padding-top: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seg button { transition: none; }
+}

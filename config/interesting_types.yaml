@@ -1,0 +1,20 @@
+# ICAO type designators always worth an event. Value = Czech label for the UI/AI.
+A388: Airbus A380
+A124: Antonov An-124 Ruslan
+AN22: Antonov An-22
+A225: Antonov An-225
+B748: Boeing 747-8
+B744: Boeing 747-400
+B74S: Boeing 747SP
+C17: Boeing C-17 Globemaster III
+C5M: Lockheed C-5 Galaxy
+A400: Airbus A400M Atlas
+IL76: Iljušin Il-76
+BLCF: Boeing 747 Dreamlifter
+A3ST: Airbus Beluga
+A337: Airbus BelugaXL
+CONC: Concorde
+U2: Lockheed U-2
+B52: Boeing B-52
+E3TF: Boeing E-3 AWACS
+K35R: Boeing KC-135

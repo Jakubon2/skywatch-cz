@@ -1,0 +1,8 @@
+fastapi==0.115.*
+uvicorn[standard]==0.32.*
+httpx==0.28.*
+pyyaml==6.*
+python-dotenv==1.*
+pytest==8.*
+anthropic==0.*
+pywebpush==2.*  # Web Push encryption + VAPID; hand-rolling RFC 8291 is not simpler

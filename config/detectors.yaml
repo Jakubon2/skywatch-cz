@@ -1,0 +1,85 @@
+# All detector thresholds in one place. Tune on recorded fixtures (backend/replay.py).
+
+dedup_minutes: 30           # same event type for the same aircraft at most once per this window
+
+# Czech airports used by go_around and return_or_diversion: ICAO ident -> Czech name.
+# Position and elevation come from OurAirports (data/), never typed by hand.
+airports:
+  LKPR: Letiště Václava Havla Praha
+  LKTB: Letiště Brno-Tuřany
+  LKMT: Letiště Leoše Janáčka Ostrava
+  LKPD: Letiště Pardubice
+
+emergency:
+  squawks: ["7700", "7600", "7500"]
+  hijack_squawk: "7500"     # shown with "často jde o chybu nebo test, neověřeno"
+  min_samples: 2            # consecutive samples with the squawk/emergency, filters one-off glitches
+
+holding:
+  # ADS-B emitter categories that can hold: A2 small, A3 large, A4 B757, A5 heavy, A6 high performance.
+  # Leaves out light aircraft (A1: sightseeing, training, circling), gliders, rotorcraft, ground stations
+  # and aircraft without a category.
+  categories: [A2, A3, A4, A5, A6]
+  window_minutes: 8
+  min_window_coverage: 0.75 # the track must cover at least this share of the window
+  min_turn_deg: 330         # sum of absolute heading changes in the window
+  max_drift_nm: 15          # max distance from the window's first position
+  min_alt_ft: 3000
+  max_alt_dev_ft: 1000      # altitude stays within +- this around the window's mid value
+
+go_around:
+  # Checks the nearest airport from the `airports` list above.
+  window_minutes: 5
+  max_dist_nm: 6
+  max_agl_ft: 2000          # lowest point of the approach must be below this above the airport
+  descent_rate_fpm: -300    # baro_rate below this counts as descending
+  climb_rate_fpm: 800       # baro_rate above this counts as climbing
+  climb_samples: 2          # consecutive climbing samples needed
+  min_gain_ft: 400          # climb from the lowest point
+  max_gap_s: 30             # a longer gap in the data may hide a touchdown: start over
+
+rapid_descent:
+  # Emergency-style descent without an emergency squawk. ADS-B baro_rate is often garbage
+  # (+-50 000 fpm at a constant altitude), so the altitude itself must confirm the descent.
+  # A6 (high performance = mostly fighters) and light aircraft are left out.
+  categories: [A2, A3, A4, A5]
+  window_minutes: 5
+  descent_rate_fpm: -4000   # baro_rate below this ...
+  min_samples: 3            # ... in this many consecutive samples
+  min_alt_rate_fpm: -3000   # rate computed from alt_baro over those samples must be below this too
+  min_start_alt_ft: 20000   # highest altitude in the window (cruise)
+  min_loss_ft: 8000         # highest altitude in the window minus the current one
+
+return_or_diversion:
+  # Only the case the data supports: a steady leg, a reversal to a steady opposite leg,
+  # then descending toward a Czech airport. Always marked "probable" (pravděpodobně).
+  categories: [A2, A3, A4, A5]   # light aircraft turn back all the time
+  leg_minutes: 3            # length of the "before" leg (start of history) and the "after" leg (now)
+  max_leg_spread_deg: 25    # every sample of a leg within this of the leg's mean heading
+  min_reversal_deg: 150
+  min_before_alt_ft: 8000   # the "before" leg flew above this ...
+  max_before_descent_ft: 500 # ... and wasn't descending (an arrival's downwind -> final reversal is)
+  min_descent_ft: 1000      # altitude lost during the "after" leg
+  max_airport_dist_nm: 80
+  max_bearing_off_deg: 30   # airport within this of the current track
+  min_closing_nm: 3         # got this much closer to the airport during the "after" leg
+
+heli_orbit:
+  # Rescue/police helicopters circling over one spot. Rotorcraft = category A7, or no category
+  # and a callsign with one of these prefixes. Not "CPA" (Cathay Pacific in the recording).
+  callsign_prefixes: [KRYS, LZS, POL, CHX, LPR]
+  max_gs_kt: 120            # filters fixed-wing aircraft wrongly reporting A7 (seen in the recording)
+  min_gs_kt: 15             # below this the track is noise (hovering), not counted as turning
+  window_minutes: 6
+  min_window_coverage: 0.75
+  min_turn_deg: 540         # 1.5 full circles
+  max_drift_nm: 1.5         # max distance from the window's first position
+  max_alt_ft: 4000          # pressure altitude, Czech terrain is mostly below 2 000 ft
+
+interesting:
+  types_file: interesting_types.yaml
+  military: true            # dbFlags & 1
+  unseen_days: 30           # type not seen for this many days counts as rare
+  # The "unseen type" rule only works after this much history has been collected,
+  # otherwise every type would look new on a fresh database.
+  unseen_min_history_days: 30

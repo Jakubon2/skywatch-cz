@@ -1,0 +1,132 @@
+# Runtime configuration. Detector thresholds will be added here in phase 1.
+
+source:
+  # Any readsb-compatible API (adsb.lol, airplanes.live, adsb.fi) uses the same response format.
+  base_url: https://api.adsb.lol
+  center_lat: 49.8
+  center_lon: 15.5
+  radius_nm: 160
+
+poller:
+  interval_s: 10          # adsb.lol: at most one request every 10 s
+  max_backoff_s: 300      # cap for exponential backoff on HTTP 429 / network errors
+  history_minutes: 15     # track history kept in memory per aircraft
+  request_timeout_s: 15
+
+explain:
+  model: claude-haiku-5-5
+  effort: low               # short layperson explanations; raise if quality is lacking
+  max_tokens: 4000
+  max_calls_per_hour: 30    # hard cap on Claude API calls (rolling hour); above it events stay unexplained
+  track_minutes: 10         # how much track history goes into the prompt
+  track_points: 6           # number of summary points from that window
+  metar_station: LKPR
+  metar_refresh_minutes: 10
+
+chat:
+  model: claude-haiku-5-5
+  effort: low
+  max_tokens: 8000
+  max_calls_per_hour: 60    # hard cap on chat questions (rolling hour); above it /api/chat returns 429
+  max_tool_iterations: 6    # Claude API calls per question (tool loop) before giving up
+  max_history_messages: 20  # how much of the conversation is sent back
+  list_limit: 15            # aircraft listed by search_aircraft (count is always exact)
+  top_n: 5                  # top airlines/types in stats
+
+history:
+  sample_s: 30              # at most one stored position per aircraft every N seconds
+  retention_hours: 24       # older positions are deleted
+  prune_every_minutes: 10
+  stale_s: 90               # a playback frame shows aircraft whose last position is at most this old
+  max_frames: 240           # /api/history raises `step` to stay within this many frames
+  stats_cache_s: 60         # /api/stats result cache
+  stats_top_n: 10
+
+daily_summary:
+  enabled: false            # set true to send the evening summary to ntfy (NTFY_TOPIC)
+  at: "20:00"               # Europe/Prague local time
+  model: claude-haiku-5-5
+  effort: low
+  max_tokens: 4000
+  max_calls_per_day: 6      # hard cap on Claude calls (rolling 24 h), previews included
+  cache_minutes: 30         # /api/summary/today reuses the last text this long
+  max_events: 15            # latest events of the day passed to the prompt
+
+enrich:
+  route:                    # adsb.lol route API; shares politeness with the poller, so cache hard
+    url: https://api.adsb.lol/api/0/routeset
+    cache_hours: 6
+    miss_cache_minutes: 60
+    min_interval_s: 10
+    max_per_hour: 30
+  photo:                    # planespotters.net public API (attribution required in the UI)
+    url: https://api.planespotters.net/pub/photos
+    cache_hours: 24
+    miss_cache_minutes: 360
+    min_interval_s: 1
+    max_per_hour: 120
+
+noise:                      # rough noise estimate over an address (/api/noise); see backend/noise.py
+  ref_distance_m: 305       # reference levels below are LAmax at this slant distance (1000 ft)
+  ref_db:                   # dB(A) at ref_distance_m, take-off/climb thrust
+    light: 75               # single-engine piston, small twins
+    regional: 83            # ATR, Dash 8, CRJ, E-jets, business jets
+    narrowbody: 88          # A320 family, B737
+    widebody: 93            # A330/A350, B777/B787, B747, A380
+    rotorcraft: 85
+  phase_offset_db:          # added to ref_db by flight phase
+    climb: 0
+    approach: -2            # descending, or level below low_level_ft
+    cruise: -8              # level at altitude: reduced thrust
+  climb_fpm: 500            # baro_rate above this = climb, below minus this = descent
+  low_level_ft: 8000
+  absorption_db_per_km: 1.5 # effective A-weighted atmospheric absorption (broadband aircraft spectrum)
+  min_slant_m: 100
+  observer_elev_m: 250      # assumed ground elevation (alt_baro is above sea level)
+  max_radius_km: 50
+  category_class:           # ADS-B emitter category -> class
+    A1: light
+    A2: regional
+    A3: narrowbody
+    A4: narrowbody
+    A5: widebody
+    A7: rotorcraft
+    B4: light
+  type_class:               # ICAO type -> class, overrides category (also covers aircraft without category)
+    widebody: [A332, A333, A338, A339, A343, A346, A359, A35K, A388, B744, B748, B762, B763, B764, B772, B77L, B77W, B778, B779, B788, B789, B78X, A124, A400, C17, IL76, MD11]
+    narrowbody: [A318, A319, A320, A321, A19N, A20N, A21N, B736, B737, B738, B739, B37M, B38M, B39M, B752, B753, BCS1, BCS3]
+    regional: [AT43, AT45, AT72, AT75, AT76, DH8A, DH8B, DH8C, DH8D, CRJ2, CRJ7, CRJ9, CRJX, E170, E175, E190, E195, E290, E295, SF34, C25A, C25B, C56X, C68A, CL35, GLF6, GLEX, F2TH, PC12, L410]
+    rotorcraft: [EC35, EC45, EC135, H135, H145, EC30, A139, AS50, R44, R22, B06, MI8, UH1, S76]
+  labels:                   # upper bound (exclusive) -> Czech comparison
+    - [20, "téměř neslyšitelné"]
+    - [30, "jako šepot"]
+    - [40, "jako tichá knihovna"]
+    - [50, "jako tichá kancelář"]
+    - [60, "jako běžný rozhovor"]
+    - [70, "jako rušná ulice"]
+    - [80, "jako vysavač"]
+    - [90, "jako projíždějící kamion"]
+    - [999, "jako sbíječka"]
+
+contrails:                  # contrail forecast (/api/contrails); see backend/contrails.py
+  url: https://api.open-meteo.com/v1/forecast
+  levels_hpa: [300, 250, 200]
+  horizon_hours: 12         # hours used for the summary
+  cache_minutes: 30         # per location rounded to round_deg
+  round_deg: 0.1
+  propulsion_efficiency: 0.35  # overall efficiency eta of a modern turbofan (Schumann 2000: ~0.3-0.4)
+  ei_h2o: 1.25              # kg water per kg kerosene
+  fuel_heat: 43200000        # J/kg, lower heating value of kerosene
+  persistent_rhi: 100       # % RH over ice for persistence; NWP models tend to underestimate supersaturation
+  overcast_cover: 85        # % cloud cover above which trails are probably hidden
+  timeout_s: 10
+
+passes:                     # compact long-term pass history for flight predictions
+  cell_lat_deg: 0.2         # grid cell ~22 km tall; predictions are only this precise
+  cell_lon_deg: 0.3         # ~22 km wide at 50°N
+  retention_days: 30
+  min_history_days: 3       # fewer past days with data -> empty list + reason
+  min_days_seen: 3          # a callsign must recur at a similar time on this many days
+  cluster_minutes: 45       # "similar time" = within ±45 min
+  grace_minutes: 15         # also list flights due up to 15 min ago
+  max_results: 30

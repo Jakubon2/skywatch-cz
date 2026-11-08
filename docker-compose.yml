@@ -1,0 +1,50 @@
+# Production: one VPS, Caddy serves the built frontend and proxies /api to the backend.
+# Guide: docs/deploy.md. Start/update: docker compose up -d --build
+#
+# Values in ${...} come from .env in this folder (Compose reads it automatically).
+
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./config:/app/config:ro
+      - ./data:/app/data # SQLite + OurAirports CSVs; must be writable by uid 1000
+    expose:
+      - "8000" # only reachable from Caddy, never published on the host
+    logging: &logging
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+
+  caddy:
+    # Two-stage build inline: Node builds frontend/dist, Caddy serves it.
+    build:
+      context: ./frontend
+      dockerfile_inline: |
+        FROM node:22-alpine AS build
+        WORKDIR /src
+        COPY package.json package-lock.json ./
+        RUN npm ci
+        COPY . .
+        RUN rm -rf node_modules/.vite && npm run build
+        FROM caddy:2-alpine
+        COPY --from=build /src/dist /srv
+    restart: unless-stopped
+    depends_on: [backend]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    environment:
+      DOMAIN: ${DOMAIN:?Nastav DOMAIN v .env}
+      SKYWATCH_TOKEN: ${SKYWATCH_TOKEN:?Nastav SKYWATCH_TOKEN v .env (openssl rand -hex 32)}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data # TLS certificates; keep it, or Let's Encrypt rate limits bite
+      - caddy_config:/config
+    logging: *logging
+
+volumes:
+  caddy_data:
+  caddy_config:
