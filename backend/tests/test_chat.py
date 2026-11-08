@@ -151,7 +151,7 @@ def test_loop_runs_tool_and_answers(poller, fake):
     assert reply == "Nad ČR jsou teď 3 Ryanairy."
     first, second = messages.calls
     assert first["model"] == "claude-haiku-5-5"
-    assert {t["name"] for t in first["tools"]} == {"search_aircraft", "aircraft_detail", "recent_events", "stats"}
+    assert {t["name"] for t in first["tools"]} == {"search_aircraft", "aircraft_detail", "recent_events", "watched_aircraft", "stats"}
     result = second["messages"][-1]["content"][0]
     assert result["tool_use_id"] == "tu1" and not result["is_error"]
     assert json.loads(result["content"])["count"] == 3

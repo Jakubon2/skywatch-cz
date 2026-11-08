@@ -141,7 +141,7 @@ def test_summary_custom_area_altitude_events():
         event_types=["holding", "go_around"], min_size_category="A5",
     ))
     assert "do 19 km od bodu 50.00° s. š., 14.00° v. d." in s
-    assert "1 000 ft až 10 000 ft" in s
+    assert "300 m až 3 050 m" in s
     assert "holding, nepovedené přistání" in s
     assert "těžké" in s
 
@@ -376,3 +376,11 @@ def test_parse_endpoint_passes_home(monkeypatch):
 
     r = client.post("/api/alerts/parse", json={"text": "nade mnou"})
     assert r.status_code == 422 and "nastav svou adresu" in r.json()["detail"]
+
+
+def test_ladd_and_pia_never_matched_by_registration_or_callsign():
+    from alerts import AlertRule, matches
+    ac = {"hex": "abc", "r": "OK-ABC", "flight": "CSA1  ", "dbFlags": 8}
+    assert not matches(AlertRule(registrations=["OK-ABC"]), ac, [])
+    assert not matches(AlertRule(callsigns=["CSA*"]), {**ac, "dbFlags": 4}, [])
+    assert matches(AlertRule(registrations=["OK-ABC"]), {**ac, "dbFlags": 0}, [])

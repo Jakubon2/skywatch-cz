@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 import anthropic
 
 from config import CONFIG
+from detectors import watched
 from detectors.geo import distance_nm
 from explain import PRAGUE, _get_client, summarize_track
 
@@ -29,8 +30,9 @@ Pravidla:
 - Místo podle názvu (např. Beroun, letiště Brno) převeď na souřadnice sám a hledej s rozumným poloměrem (u města asi 5–10 NM). Řekni, jaký poloměr jsi použil.
 - Letecká společnost se pozná z prvních tří písmen volacího znaku (ICAO kód, např. RYR = Ryanair, CSA = Czech Airlines, SWR = Swiss). Když si přiřazením kódu nejsi jistý, přiznej to. Některé společnosti létají pod více kódy (Ryanair skupina např. i RYS, MAY, LDA), zmiň to, když je to podstatné.
 - Vždy zmiň čas dat (data_time) z výsledku nástroje. Všechny časy v nástrojích jsou pražský místní čas.
-- Odpovídej česky, stručně (1–4 věty, u výčtu krátký seznam). Výšky ve stopách (ft), rychlosti v uzlech (kt).
-- Detektory se můžou mýlit; příčiny událostí nevymýšlej."""
+- Odpovídej česky, stručně (1–4 věty, u výčtu krátký seznam). Výšky vždy v metrech, rychlosti v km/h, stoupání v m/s, vzdálenosti v km. Data z nástrojů jsou v ft, kt a NM, převeď je (1 ft = 0,3048 m, 1 kt = 1,852 km/h, 1 NM = 1,852 km) a zaokrouhli. Stopy, uzly ani míle uživateli neuváděj.
+- Detektory se můžou mýlit; příčiny událostí nevymýšlej.
+- U sledovaných letadel (tryskáče známých osobností) vždy řekni, že vlastnictví je z veřejných zdrojů a může být zastaralé, a netvrď, kdo je na palubě."""
 
 AREA_PROPS = {
     "only_czechia": {"type": "boolean", "description": "Jen letadla nad územím ČR (přibližná hranice)."},
@@ -72,10 +74,15 @@ TOOLS = [
         "input_schema": {
             "type": "object",
             "properties": {
-                "type": {"type": "string", "enum": ["emergency", "holding", "go_around", "interesting"]},
+                "type": {"type": "string", "enum": ["emergency", "holding", "go_around", "interesting", "watched"]},
                 "minutes": {"type": "integer", "description": "Okno v minutách (výchozí 60)."},
             },
         },
+    },
+    {
+        "name": "watched_aircraft",
+        "description": "Sledovaná letadla (soukromé tryskáče veřejně známých osobností ze seznamu v aplikaci), která jsou teď v dosahu dat. Vrací i velikost seznamu.",
+        "input_schema": {"type": "object", "properties": {"only_czechia": AREA_PROPS["only_czechia"]}},
     },
     {
         "name": "stats",
@@ -245,7 +252,26 @@ def stats(poller, args: dict) -> dict:
     }
 
 
-TOOL_FUNCS = {f.__name__: f for f in (search_aircraft, aircraft_detail, recent_events, stats)}
+def watched_aircraft(poller, args: dict) -> dict:
+    """Watchlist entries in range. LADD/PIA aircraft never match (see detectors/watched.py)."""
+    wl, cfg = poller.ctx["watchlist"], poller.ctx["cfg"]["watched"]
+    found = []
+    for a in poller.latest["ac"]:
+        entry = watched.match(a, wl, cfg)
+        if entry is None or not _in_area(a, args):
+            continue
+        found.append({**_brief(a), "label": entry["label"], "category": entry["category"],
+                      "note": entry.get("note"), "source": entry["source"], "checked": entry["checked"]})
+    return {
+        **_data_time(poller),
+        "watchlist_size": len(wl["entries"]),
+        "count": len(found),
+        "aircraft": found,
+        "caveat": "Vlastnictví je z veřejných zdrojů a může být zastaralé; kdo je na palubě, z dat nepoznáme.",
+    }
+
+
+TOOL_FUNCS = {f.__name__: f for f in (search_aircraft, aircraft_detail, recent_events, watched_aircraft, stats)}
 
 
 def run_tool(poller, name: str, args: dict) -> dict:

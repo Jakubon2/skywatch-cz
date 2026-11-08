@@ -33,13 +33,14 @@ def load_last_hits(conn):
 
 
 def _describe(ac: dict) -> str:
+    """Notification text, metric like the rest of the UI."""
     callsign = (ac.get("flight") or "").strip() or ac.get("r") or ac["hex"]
     parts = [callsign]
     if ac.get("t"):
         parts.append(ac["t"])
     alt = ac.get("alt_baro")
     if isinstance(alt, (int, float)):
-        parts.append(f"{alt:,} ft".replace(",", " "))
+        parts.append(f"{round(alt * 0.3048 / 10) * 10:,} m".replace(",", " "))
     return ", ".join(parts)
 
 

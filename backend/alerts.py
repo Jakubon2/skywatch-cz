@@ -148,7 +148,7 @@ Jak plnit pole save_rule (co uživatel neříká, nech null):
 - min_size_category: minimální velikostní kategorie ADS-B: A1 lehké (do 7 t), A2 malé (7–34 t), A3 velké (34–136 t), A4 B757, A5 těžké (nad 136 t). „Cokoli většího než A350“ nebo „velké dopravní jako 747“ → A5.
 - military: true jen pro vojenská letadla, false jen pro civilní.
 - event_types: když se ptá na situace: emergency (nouze), holding (kroužení), go_around (nepovedené přistání), interesting (zajímavé nebo vzácné letadlo).
-- min_alt_ft, max_alt_ft: výška ve stopách (1 m = 3,28 ft).
+- min_alt_ft, max_alt_ft: výška ve stopách. Uživatel ji obvykle zadá v metrech, převeď ji (1 m = 3,28 ft, např. 3000 m → 9843).
 
 Když text není požadavek na upozornění, nebo je tak nejasný, že by z něj šlo jen hádat, zavolej cannot_parse a česky vysvětli proč."""
 
@@ -238,7 +238,8 @@ async def parse_rule(text: str, home: Home | None = None) -> AlertRule:
 # ---------- Rule -> Czech summary ----------
 
 def _fmt_ft(ft: int) -> str:
-    return f"{ft:,} ft".replace(",", " ")
+    """Rules store feet (like the data); users see metres rounded to 50 m."""
+    return f"{round(ft * 0.3048 / 50) * 50:,} m".replace(",", " ")
 
 
 def _area_label(area: Area) -> str:
@@ -307,6 +308,10 @@ def matches(rule: AlertRule, aircraft: dict, events_for_hex: list[dict]) -> bool
             return False
 
     if rule.aircraft_types and (aircraft.get("t") or "").upper() not in rule.aircraft_types:
+        return False
+
+    # Owners who opted out of tracking (LADD 8, PIA 4) are never followed by registration or callsign.
+    if (rule.registrations or rule.callsigns) and aircraft.get("dbFlags", 0) & 12:
         return False
 
     if rule.registrations:

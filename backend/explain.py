@@ -20,6 +20,7 @@ EVENT_LABELS = {
     "holding": "holding (letadlo krouží na místě)",
     "go_around": "pravděpodobné nepovedené přistání (go-around) u letiště Praha",
     "interesting": "zajímavé letadlo (vzácný typ nebo vojenské)",
+    "watched": "sledované letadlo: soukromý tryskáč, který veřejné zdroje spojují se známou osobností (kdo je na palubě, z dat nepoznáme)",
 }
 
 SYSTEM_PROMPT = """Jsi stručný a poctivý komentátor letového provozu nad Českem. Dostaneš událost, kterou automaticky zachytil detektor z dat ADS-B, souhrn trati letadla a aktuální počasí (METAR) z letiště Praha.
@@ -31,7 +32,9 @@ Pravidla poctivosti:
 - Když z dat není příčina jasná, napiš doslova „důvod z dat nepoznáme“.
 - Možné příčiny formuluj jako pravděpodobné („nejspíš“, „může jít o“), nikdy jako jistotu.
 - Počasí zmiň jen tehdy, když opravdu může souviset (mlha, nízká oblačnost, silný vítr).
-- Detektor se může mýlit. Nouzový kód 7500 (únos) bývá často chyba nebo test, proto ho nikdy nepodávej jako potvrzený únos."""
+- Detektor se může mýlit. Nouzový kód 7500 (únos) bývá často chyba nebo test, proto ho nikdy nepodávej jako potvrzený únos.
+
+Jednotky: výšky vždy v metrech, rychlosti v km/h, stoupání a klesání v m/s, vzdálenosti v km. Data jsou ve stopách (ft), uzlech (kt) a ft/min, převeď je (1 ft = 0,3048 m, 1 kt = 1,852 km/h, 1000 ft/min ≈ 5 m/s) a zaokrouhli. Stopy, uzly ani míle nikdy neuváděj."""
 
 _calls: deque[float] = deque()  # time.monotonic() of each API call in the last hour
 _client: anthropic.AsyncAnthropic | None = None
