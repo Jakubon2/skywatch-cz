@@ -21,7 +21,7 @@ cp .env.example .env
 cd backend
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-.venv/bin/uvicorn api:app --reload --port 8000
+.venv/bin/uvicorn api:app --reload --timeout-graceful-shutdown 2 --port 8000
 ```
 
 Poller se spustí s aplikací a každých 10 s loguje počet letadel. Stav: <http://127.0.0.1:8000/api/health>.
