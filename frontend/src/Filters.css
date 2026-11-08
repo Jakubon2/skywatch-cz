@@ -1,0 +1,253 @@
+/* Map filters: button over the map + filter card. Mobile: under the status pill, card spans the width.
+   Desktop: just right of the side panel. */
+
+.filters {
+  --fl-top: calc(env(safe-area-inset-top) + var(--gap) + 44px + 8px);
+}
+
+.filters__btn {
+  position: absolute;
+  z-index: 1001;
+  top: var(--fl-top);
+  right: calc(env(safe-area-inset-right) + var(--gap));
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  cursor: pointer;
+}
+.filters__btn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+.filters__btn.is-active { color: var(--accent); }
+.filters__label { display: none; }
+.filters__count {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--surface-strong);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.filters__backdrop { position: absolute; inset: 0; z-index: 1001; }
+
+.filters__card {
+  position: absolute;
+  z-index: 1002;
+  top: calc(var(--fl-top) + 52px);
+  left: calc(env(safe-area-inset-left) + var(--gap));
+  right: calc(env(safe-area-inset-right) + var(--gap));
+  max-height: calc(100dvh - var(--fl-top) - 52px - var(--peek) - 12px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px 16px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  animation: fl-in 0.18s ease-out;
+}
+@keyframes fl-in { from { opacity: 0; transform: translateY(-6px); } }
+
+.filters__head { display: flex; align-items: center; gap: 10px; }
+.filters__head h3 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+.filters__match { flex: 1; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.filters__reset {
+  border: 0;
+  background: none;
+  padding: 6px 4px;
+  color: var(--accent);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filters__card section { margin-top: 16px; }
+.filters__card h4 {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.filters__card h4 span { color: var(--text); text-transform: none; letter-spacing: 0; font-size: 13px; font-variant-numeric: tabular-nums; }
+.filters__empty { margin: 0; color: var(--muted); font-size: 13px; }
+
+.filters__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Native checkbox styled as a switch. */
+.fl-switch {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 40%, transparent);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.fl-switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s;
+}
+.fl-switch:checked { background: var(--accent); }
+.fl-switch:checked::after { transform: translateX(18px); }
+.fl-switch:focus-visible { outline: 3px solid var(--accent-soft); outline-offset: 2px; }
+
+.fl-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.fl-chips--scroll { max-height: 128px; overflow-y: auto; padding: 1px; }
+.fl-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 550;
+  cursor: pointer;
+}
+.fl-chip small { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.fl-chip:hover { border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+.fl-chip.is-on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.fl-chip.is-on small { color: inherit; }
+
+/* Two overlaid range inputs = one slider with two thumbs. Track fill between --lo and --hi (0..1). */
+.range2 {
+  position: relative;
+  height: 28px;
+  --track: color-mix(in srgb, var(--muted) 30%, transparent);
+}
+.range2::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  right: 11px;
+  top: 12px;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--track) calc(var(--lo) * 100%),
+    var(--accent) calc(var(--lo) * 100%) calc(var(--hi) * 100%),
+    var(--track) calc(var(--hi) * 100%)
+  );
+}
+.range2 input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  background: none;
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: none;
+}
+.range2 input::-webkit-slider-runnable-track { height: 28px; background: none; }
+.range2 input::-moz-range-track { background: none; }
+.range2 input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  pointer-events: auto;
+  cursor: grab;
+}
+.range2 input::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  pointer-events: auto;
+  cursor: grab;
+}
+.range2 input:focus-visible::-webkit-slider-thumb { outline: 3px solid var(--accent-soft); }
+.range2__scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Planes the filter doesn't match (class set by Map.jsx). The selected plane always stays visible. */
+.ac--dim:not(.ac--sel) { opacity: 0.22; filter: grayscale(1); }
+.ac--dim:not(.ac--sel) svg { filter: none; }
+
+@media (min-width: 960px) {
+  .filters { --fl-top: var(--gap); --fl-left: calc(var(--gap) + var(--panel-w) + 12px); }
+  .filters__btn { right: auto; left: var(--fl-left); padding: 0 14px; }
+  .filters__label { display: inline; }
+  .filters__card { left: var(--fl-left); right: auto; width: 340px; max-height: calc(100dvh - var(--fl-top) - 52px - var(--gap)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filters__card { animation: none; }
+  .fl-switch, .fl-switch::after { transition: none; }
+}
+
+/* Mobile: the card can sit over the expanded bottom sheet, so make it solid and dim what's behind. */
+@media (max-width: 959.98px) {
+  .filters__backdrop { background: rgb(0 0 0 / 0.32); animation: fl-fade 0.18s ease-out; }
+  .filters__card { background: var(--surface-strong); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+@keyframes fl-fade { from { opacity: 0; } }
