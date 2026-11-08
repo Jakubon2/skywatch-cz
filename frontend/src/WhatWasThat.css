@@ -113,7 +113,7 @@ path.wwt-cpa { stroke: var(--surface-strong); stroke-width: 3; fill: var(--accen
   position: absolute;
   z-index: 999; /* below the panel (1000) so the open sheet covers it */
   right: calc(env(safe-area-inset-right) + var(--gap));
-  bottom: calc(var(--peek) + 30px);
+  bottom: calc(var(--peek) + 58px); /* clear of the attribution, which wraps to two lines on phones */
   display: inline-flex;
   align-items: center;
   gap: 8px;

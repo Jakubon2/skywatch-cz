@@ -156,3 +156,29 @@ def test_event_search_and_single_event(poller, client):
     assert [e["callsign"] for e in client.get("/api/events", params={"since": "2026-11-05"}).json()] == ["CSA123"]
     assert client.get(f"/api/events/{eid}").json()["callsign"] == "CSA123"
     assert client.get("/api/events/9999").status_code == 404
+
+
+def test_dedup_survives_restart(tmp_path):
+    """A restart (uvicorn --reload) must not re-emit events from the last dedup window."""
+    from datetime import datetime, timezone
+    import db as dbmod
+    path = tmp_path / "t.db"
+    first = Poller(db_path=path)
+    dbmod.insert_event(first.db, {"type": "interesting", "hex": "abc123", "callsign": "X", "aircraft_type": "C17",
+                                  "lat": 50, "lon": 15, "alt_ft": 30000, "data": {},
+                                  "started_at": datetime.now(timezone.utc).isoformat(timespec="seconds")})
+    first.db.commit()
+    again = Poller(db_path=path)
+    import time
+    assert not again.dedup.allow("interesting", "abc123", time.time())
+    assert again.dedup.allow("interesting", "other", time.time())
+
+
+def test_ground_stations_are_not_aircraft(poller):
+    """A 'TWR' ground station broadcasting 55 900 ft must never reach the map, chat or detectors."""
+    snap = snapshot(0, squawk="1000")
+    snap["ac"] += [{"hex": "tower1", "flight": "FFMUNT", "t": "TWR", "r": "TWR", "lat": 47.8, "lon": 13.0,
+                    "alt_baro": 55900, "gs": 60},
+                   {"hex": "car001", "category": "C2", "lat": 50.1, "lon": 14.26, "alt_baro": "ground"}]
+    poller.ingest(snap)
+    assert [a["hex"] for a in poller.latest["ac"]] == ["abc123"]

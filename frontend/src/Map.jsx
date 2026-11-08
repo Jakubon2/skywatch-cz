@@ -31,6 +31,7 @@ export function visiblePadding() {
 // Feature overlays get the Leaflet instance through onReady (see state.jsx), so they never need to edit this file.
 // From this zoom up, every plane carries a small data label (selected plane always does).
 const LABEL_ZOOM = 9;
+const GROUND_LABEL_ZOOM = 13; // planes and vehicles on the ground crowd the apron, so label them later
 const fmt = (n) => Math.round(n).toLocaleString("cs-CZ");
 
 // Second label line: altitude, speed and a climb/descent arrow, metric.
@@ -69,6 +70,7 @@ export default function Map({ aircraft, selectedHex, onSelect, onReady, dimmed }
       const z = map.getZoom();
       box.style.setProperty("--ac", `${z <= 6 ? 15 : z === 7 ? 18 : 22}px`);
       box.classList.toggle("z-labels", z >= LABEL_ZOOM);
+      box.classList.toggle("z-ground-labels", z >= GROUND_LABEL_ZOOM);
     };
     sizeIcons();
     map.on("zoomstart", () => box.classList.remove("glide"));

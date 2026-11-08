@@ -236,10 +236,12 @@ export default function WhatWasThat({ home }) {
   );
 }
 
-// Map shortcut: opens "Nad hlavou" and asks right away. Hidden while that tab is open.
+// Map shortcut: opens "Nad hlavou" and asks right away.
 export function WhatWasThatFab() {
   const { view, setView, open, setOpen, select, selected } = useApp();
-  if (view === "near" && !selected && (open || isDesktop())) return null;
+  // Phone: only over the bare map. Under an open sheet or the aircraft detail it would just
+  // shine through the translucent panel. Desktop: everywhere except the "Nad hlavou" tab itself.
+  if (isDesktop() ? view === "near" && !selected : open || selected) return null;
   return (
     <button
       className="wwt-fab"

@@ -3,7 +3,9 @@ runs the detectors on every update and stores new events."""
 
 import asyncio
 import logging
+import time
 from collections import deque
+from datetime import datetime, timezone
 
 import db
 from adsb import AdsbClient, poll_forever
@@ -11,6 +13,14 @@ from config import CONFIG
 from detectors import Deduper, load_context, run_all
 
 log = logging.getLogger("poller")
+
+_NOT_TYPES = set(CONFIG["poller"].get("non_aircraft_types", []))
+_NOT_CATEGORIES = set(CONFIG["poller"].get("non_aircraft_categories", []))
+
+
+def is_aircraft(a: dict) -> bool:
+    """False for ground stations, towers and airport vehicles that transmit ADS-B too."""
+    return (a.get("t") or "").upper() not in _NOT_TYPES and a.get("category") not in _NOT_CATEGORIES
 
 
 class Poller:
@@ -23,14 +33,25 @@ class Poller:
         self.ctx = load_context()
         self.ctx["seen_types"], self.ctx["history_since"] = db.load_seen_types(self.db)
         self.dedup = Deduper(self.ctx["cfg"]["dedup_minutes"])
+        self._seed_dedup()
         # Called after every live snapshot as listener(poller, new_events); sync or async.
         # Feature modules (explanations, alerts, history...) register here instead of editing ingest().
         self.listeners: list = []
 
+    def _seed_dedup(self):
+        """Restore the dedup window from stored events, so a restart (or --reload) doesn't
+        re-emit, and re-explain with AI, every event of the last dedup_minutes."""
+        since = datetime.fromtimestamp(time.time() - self.dedup.window_s, timezone.utc).isoformat(timespec="seconds")
+        rows = self.db.execute(
+            "SELECT type, hex, MAX(started_at) FROM events WHERE started_at >= ? GROUP BY type, hex", (since,)
+        ).fetchall()
+        for event_type, hex_id, started_at in rows:
+            self.dedup.last[(event_type, hex_id)] = datetime.fromisoformat(started_at).timestamp()
+
     def ingest(self, snapshot: dict) -> list[dict]:
         """Process one snapshot; returns the new (deduplicated, stored) events."""
         now = snapshot["now"] / 1000
-        aircraft = [a for a in snapshot.get("ac", []) if "lat" in a and "lon" in a]
+        aircraft = [a for a in snapshot.get("ac", []) if "lat" in a and "lon" in a and is_aircraft(a)]
 
         updated = []
         for a in aircraft:

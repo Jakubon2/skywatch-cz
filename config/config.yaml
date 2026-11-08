@@ -12,6 +12,10 @@ poller:
   max_backoff_s: 300      # cap for exponential backoff on HTTP 429 / network errors
   history_minutes: 15     # track history kept in memory per aircraft
   request_timeout_s: 15
+  # Not aircraft: ground stations, towers and airport vehicles that also transmit ADS-B
+  # (often with made-up altitudes). Dropped right at ingest, so map, chat, stats and detectors never see them.
+  non_aircraft_types: [TWR, GND]
+  non_aircraft_categories: [C1, C2, C3, C4, C5, C6, C7]
 
 explain:
   model: claude-haiku-5-5
