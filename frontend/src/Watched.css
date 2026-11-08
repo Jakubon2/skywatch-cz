@@ -1,0 +1,205 @@
+/* Sledovaná letadla tab */
+
+:root { --star: #b45309; --star-soft: rgba(217, 119, 6, 0.13); }
+@media (prefers-color-scheme: dark) {
+  :root { --star: #fbbf24; --star-soft: rgba(251, 191, 36, 0.13); }
+}
+
+.wl { display: flex; flex-direction: column; gap: 14px; padding-top: 2px; }
+.wl-loading { margin: 24px 0; text-align: center; color: var(--muted); }
+
+.wl-hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--star-soft), color-mix(in srgb, var(--text) 4%, transparent));
+}
+.wl-hero__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--star-soft);
+  color: var(--star);
+  font-size: 20px;
+}
+.wl-hero__text { display: flex; flex-direction: column; min-width: 0; }
+.wl-hero__title { font-weight: 650; }
+.wl-hero__sub { color: var(--muted); font-size: 13px; }
+.wl-hero__sub strong { color: var(--star); font-weight: 650; }
+
+/* "Právě letí" */
+.wl-live-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.wl-live {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--star) 35%, transparent);
+  border-radius: 14px;
+  background: var(--star-soft);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.wl-live:hover { background: color-mix(in srgb, var(--star) 20%, transparent); }
+.wl-live__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--surface-strong);
+}
+.wl-live__icon svg { width: 20px; height: 20px; fill: hsl(var(--h) 85% var(--plane-l)); transform: rotate(var(--rot)); }
+.wl-live__icon[data-ground] svg { fill: var(--muted); }
+.wl-live__main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.wl-live__title { font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wl-live__sub { color: var(--muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wl-live__go { flex: none; color: var(--star); font-size: 22px; line-height: 1; }
+
+/* Category groups */
+.wl-group { border-radius: 16px; background: color-mix(in srgb, var(--text) 3.5%, transparent); }
+.wl-group__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.wl-group__glyph {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 14px;
+}
+.wl-group__name { flex: 1; font-weight: 650; }
+.wl-group__name::first-letter { text-transform: uppercase; }
+.wl-group__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.wl-group__chev { color: var(--muted); font-size: 20px; line-height: 1; transition: transform 0.2s; }
+.wl-group__head[aria-expanded="true"] .wl-group__chev { transform: rotate(90deg); }
+
+.wl-list { list-style: none; margin: 0; padding: 0 12px 4px; }
+.wl-entry { padding: 12px 0; border-top: 1px solid var(--border); }
+.wl-entry__head { display: flex; align-items: flex-start; gap: 10px; }
+.wl-entry__text { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.wl-entry__label { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-weight: 650; }
+.wl-entry__reg { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.wl-entry__type { margin-left: 6px; padding: 1px 6px; border-radius: 6px; background: color-mix(in srgb, var(--text) 6%, transparent); font-size: 12px; }
+.wl-entry__actions { flex: none; display: flex; align-items: center; gap: 6px; }
+.wl-entry__note { margin: 6px 0 0; font-size: 13px; color: var(--text); opacity: 0.85; }
+.wl-entry__source { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+.wl-entry__source a { color: var(--accent); text-decoration: none; overflow-wrap: anywhere; }
+.wl-entry__source a:hover { text-decoration: underline; }
+
+.wl-alerted { background: none; box-shadow: inset 0 0 0 1px var(--border); color: var(--accent); opacity: 1 !important; }
+.wl-remove { width: 32px; height: 32px; background: none; color: var(--muted); font-size: 20px; line-height: 1; }
+.wl-remove:hover { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
+
+.wl-flying {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--star-soft);
+  color: var(--star);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.wl-flying__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--star);
+  box-shadow: 0 0 0 0 var(--star);
+  animation: wl-pulse 1.8s infinite;
+}
+@keyframes wl-pulse {
+  70% { box-shadow: 0 0 0 6px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+/* Add form */
+.wl-form { padding: 14px; border-radius: 16px; background: color-mix(in srgb, var(--text) 4%, transparent); }
+.wl-form__intro { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+.wl-form__intro strong { color: var(--text); }
+.wl-form__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.wl-form__wide { grid-column: 1 / -1; }
+.wl-form label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.wl-form label span { font-size: 12px; font-weight: 600; color: var(--muted); }
+.wl-form input {
+  min-width: 0;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface-strong);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px; /* no iOS zoom on focus */
+  outline: none;
+}
+.wl-form input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.wl-form input::placeholder { color: var(--muted); }
+.wl-form__buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+
+.wl-disclaimer { margin: 2px 4px 8px; font-size: 12px; line-height: 1.5; color: var(--muted); }
+
+/* Map: ring around watched planes in range */
+.wl-ring {
+  border: 2px solid var(--star);
+  border-radius: 50%;
+  background: var(--star-soft);
+  pointer-events: none;
+  animation: wl-ring 2.4s ease-out infinite;
+}
+@keyframes wl-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--star) 45%, transparent); }
+  80%, 100% { box-shadow: 0 0 0 14px transparent; }
+}
+.leaflet-tooltip.wl-ring__label {
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--star);
+  color: var(--surface-strong);
+  font-size: 12px;
+  font-weight: 650;
+  box-shadow: var(--shadow);
+}
+.leaflet-tooltip.wl-ring__label::before { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wl-ring, .wl-flying__dot { animation: none; }
+}

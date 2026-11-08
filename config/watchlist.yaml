@@ -1,0 +1,257 @@
+# Sledovaná letadla: soukromé tryskáče veřejně známých osobností.
+# Pravidla: jen veřejné osobnosti (nikdy soukromé osoby), každý záznam má veřejný zdroj a datum ověření.
+# Letadla s příznakem FAA LADD nebo PIA (readsb dbFlags 8 / 4) aplikace nikdy nezvýrazní ani neohlásí.
+# Vlastnictví pochází z veřejných zdrojů a může být zastaralé: letadla se prodávají, pronajímají
+# a přeregistrovávají. Hex u N-registrací ověřen převodem N-čísla na ICAO adresu.
+# Soubor můžeš upravit ručně; aplikace ho přepisuje při přidání nebo odebrání záznamu (komentáře mimo hlavičku zmizí).
+aircraft:
+- reg: N621MM
+  hex: a81b13
+  type: FA7X
+  label: Taylor Swift
+  category: hudba
+  note: Registrováno na Island Jet Inc. (Nashville).
+  source: https://aerocorner.com/blog/taylor-swifts-private-jet/
+  checked: '2026-11-08'
+- reg: M-EDZE
+  hex: 43ea4a
+  type: GLEX
+  label: Elton John
+  category: hudba
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N767CJ
+  hex: aa5bc4
+  type: B762
+  label: Drake
+  category: hudba
+  note: Boeing 767 „Air Drake“.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N44440
+  hex: a55c76
+  type: GL7T
+  label: Jay-Z
+  category: hudba
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N1980K
+  hex: a18845
+  type: GLF6
+  label: Kim Kardashian
+  category: film a TV
+  note: Gulfstream G650ER „Kim Air“, registrováno na Noel Air LLC.
+  source: https://aerocorner.com/blog/kim-kardashian-private-jet/
+  checked: '2026-11-08'
+- reg: N810KJ
+  hex: ab0a46
+  type: GL7T
+  label: Kylie Jenner
+  category: film a TV
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N808T
+  hex: ab013e
+  type: GLF4
+  label: Tom Cruise
+  category: film a TV
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N6GU
+  hex: a7c336
+  type: C680
+  label: Harrison Ford
+  category: film a TV
+  note: Ford létá i sám jako pilot.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N900KS
+  hex: ac701e
+  type: GLF6
+  label: Steven Spielberg
+  category: film a TV
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N138GL
+  hex: a0998a
+  type: GA7C
+  label: George Lucas
+  category: film a TV
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N540W
+  hex: a6d9e0
+  type: GLF6
+  label: Oprah Winfrey
+  category: film a TV
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N905FJ
+  hex: ac8245
+  type: F900
+  label: John Travolta
+  category: film a TV
+  note: Registrováno na Constellation Productions.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N444WT
+  hex: a55b7f
+  type: GL7T
+  label: Matt Damon
+  category: film a TV
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N143MW
+  hex: a0aefd
+  type: GLEX
+  label: Mark Wahlberg
+  category: film a TV
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: PH-UTL
+  hex: 4867e6
+  type: FA8X
+  label: Max Verstappen
+  category: sport
+  note: Dassault Falcon 8X, „UTL“ = Unleash The Lion, lev na ocasní ploše.
+  source: https://www.si.com/onsi/f1/news/max-verstappen-buys-58-million-private-jet-this-is-what-we-know-01jm3gg4tqrb
+  checked: '2026-11-08'
+- reg: EC-KBC
+  hex: 34254b
+  type: GALX
+  label: Cristiano Ronaldo
+  category: sport
+  note: Starší Gulfstream G200; Ronaldo v roce 2024 přešel na G650, prodej G200 není potvrzený.
+  source: https://aerocorner.com/blog/cristiano-ronaldo-private-jet/
+  checked: '2026-11-08'
+- reg: N236MJ
+  hex: a21fe6
+  type: GLF5
+  label: Michael Jordan
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N517TW
+  hex: a67d2e
+  type: GLF5
+  label: Tiger Woods
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N650MN
+  hex: a88dda
+  type: GLF6
+  label: Rory McIlroy
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N151SD
+  hex: a0cf7a
+  type: GLF4
+  label: Floyd Mayweather
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N3250N
+  hex: a38348
+  type: CL60
+  label: Shaquille O'Neal
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N628TS
+  hex: a835af
+  type: GLF6
+  label: Elon Musk
+  category: byznys
+  note: Gulfstream G650ER, registrováno na Falcon Landing LLC. Musk používá i další letadla.
+  source: https://onemileatatime.com/news/elon-musk-private-jet/
+  checked: '2026-11-08'
+- reg: N272BG
+  hex: a2ae0a
+  type: GLF5
+  label: Elon Musk
+  category: byznys
+  note: Gulfstream G550 registrovaný na Falcon Landing LLC (spojováno s Muskem a SpaceX).
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N11AF
+  hex: a029e0
+  type: GA7C
+  label: Jeff Bezos
+  category: byznys
+  note: Gulfstream G700 z roku 2024, registrováno na Poplar Glen LLC.
+  source: https://flightaware.com/resources/registration/N11AF
+  checked: '2026-11-08'
+- reg: N194WM
+  hex: a17907
+  type: GLF6
+  label: Bill Gates
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N887WM
+  hex: ac39d6
+  type: GLF6
+  label: Bill Gates
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N68885
+  hex: a9247d
+  type: GLF6
+  label: Mark Zuckerberg
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N817GS
+  hex: ab2404
+  type: GLF6
+  label: Larry Ellison
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N709DS
+  hex: a97659
+  type: GLF6
+  label: Steve Ballmer
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N921MT
+  hex: acc306
+  type: GLEX
+  label: Mark Cuban
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: N47EG
+  hex: a5bf2c
+  type: F900
+  label: Michael Bloomberg
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: F-GVMA
+  hex: '395580'
+  type: GL5T
+  label: LVMH (Bernard Arnault)
+  category: byznys
+  note: Firemní letadlo skupiny LVMH, na palubě nemusí být Arnault.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: VT-AKV
+  hex: 80169f
+  type: B39M
+  label: Mukesh Ambani
+  category: byznys
+  note: Boeing 737 MAX 9 BBJ, registrováno na Reliance Commercial Dealers.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'
+- reg: 3A-MGA
+  hex: 4d403f
+  type: FA8X
+  label: Monacká knížecí rodina
+  category: královské rody
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-08'

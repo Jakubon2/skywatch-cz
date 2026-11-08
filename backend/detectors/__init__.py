@@ -11,11 +11,11 @@ import yaml
 from airports import airport
 from config import ROOT
 
-from . import emergency, go_around, heli_orbit, holding, interesting, rapid_descent, return_or_diversion
+from . import emergency, go_around, heli_orbit, holding, interesting, rapid_descent, return_or_diversion, watched
 
 DETECTORS = [
     emergency.detect, holding.detect, go_around.detect, interesting.detect,
-    rapid_descent.detect, return_or_diversion.detect, heli_orbit.detect,
+    rapid_descent.detect, return_or_diversion.detect, heli_orbit.detect, watched.detect,
 ]
 
 
@@ -24,11 +24,14 @@ def load_context() -> dict:
         cfg = yaml.safe_load(f)
     with open(ROOT / "config" / cfg["interesting"]["types_file"], encoding="utf-8") as f:
         types = yaml.safe_load(f)
+    with open(ROOT / "config" / cfg["watched"]["file"], encoding="utf-8") as f:
+        watchlist = yaml.safe_load(f).get("aircraft") or []
     return {
         "cfg": cfg,
         # [{ident, name, name_cs, lat, lon, elevation_ft, runways}], from OurAirports + Czech name from config
         "airports": [{**airport(ident), "name_cs": name} for ident, name in cfg["airports"].items()],
         "interesting_types": types,
+        "watchlist": watched.index(watchlist),  # replaced in place by backend/watchlist.py on edits
         "seen_types": {},       # type -> last seen ts, filled by the caller
         "history_since": None,  # ts of the oldest seen_types record
     }

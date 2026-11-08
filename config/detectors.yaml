@@ -83,3 +83,11 @@ interesting:
   # The "unseen type" rule only works after this much history has been collected,
   # otherwise every type would look new on a fresh database.
   unseen_min_history_days: 30
+
+watched:
+  # Private jets of well-known public figures, see the header of the file.
+  file: watchlist.yaml
+  # readsb dbFlags bits of owners who opted out of tracking: 4 = FAA PIA, 8 = FAA LADD.
+  # These aircraft are never highlighted or notified, even if they are on the list.
+  skip_db_flags: [4, 8]
+  min_samples: 2            # consecutive matching samples, filters one-off garbled hex/registration
