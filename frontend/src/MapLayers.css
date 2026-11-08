@@ -1,0 +1,120 @@
+/* Layer switcher. Mobile: round button under the filter button (top right).
+   Desktop: under the zoom control. The card opens below the button. */
+
+.layers {
+  --ly-top: calc(env(safe-area-inset-top) + var(--gap) + 44px + 8px + 44px + 8px);
+}
+
+.layers__btn {
+  position: absolute;
+  z-index: 1001;
+  top: var(--ly-top);
+  right: calc(env(safe-area-inset-right) + var(--gap));
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  cursor: pointer;
+}
+.layers__btn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.layers__btn.is-active { color: var(--accent); }
+
+.layers__backdrop { position: absolute; inset: 0; z-index: 1001; }
+
+.layers__card {
+  position: absolute;
+  z-index: 1002;
+  top: calc(var(--ly-top) + 52px);
+  right: calc(env(safe-area-inset-right) + var(--gap));
+  width: min(300px, calc(100vw - 2 * var(--gap)));
+  max-height: calc(100dvh - var(--ly-top) - 52px - var(--peek) - 12px);
+  overflow-y: auto;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+}
+.layers__card h3 { margin: 0 0 4px; font-size: 16px; }
+
+.layers__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  font-weight: 600;
+  cursor: pointer;
+}
+.layers__row small { display: block; color: var(--muted); font-size: 12px; font-weight: 500; }
+
+.layers__legend { margin: 12px 0 0; padding: 0; list-style: none; font-size: 13px; color: var(--muted); }
+.layers__legend li { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.layers__legend li::before {
+  content: "";
+  flex: none;
+  width: 14px;
+  height: 10px;
+  border-radius: 3px;
+  border: 2px solid var(--zc);
+  background: color-mix(in srgb, var(--zc) 18%, transparent);
+}
+
+/* Radar tiles keep their own colours: undo the base-map tile filter from styles.css. */
+.radar-layer .leaflet-tile { filter: none; }
+@media (prefers-color-scheme: dark) {
+  .radar-layer .leaflet-tile { filter: none; }
+}
+
+/* Airspace popup, themed like the rest of the UI. */
+.zone-popup .leaflet-popup-content-wrapper,
+.zone-popup .leaflet-popup-tip {
+  background: var(--surface-strong);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.zone-popup .leaflet-popup-content-wrapper { border-radius: 14px; }
+.zone-popup .leaflet-popup-content { margin: 12px 14px; font-size: 13px; line-height: 1.4; }
+.zone-popup a.leaflet-popup-close-button { color: var(--muted); }
+.zone-pop { margin: 0; padding: 0 12px 0 0; list-style: none; }
+.zone-pop li { padding-left: 10px; border-left: 3px solid var(--zc); }
+.zone-pop li + li { margin-top: 10px; }
+.zone-pop b { display: block; font-size: 14px; }
+.zone-pop__kind, .zone-pop__lim { display: block; }
+.zone-pop__kind { color: var(--muted); }
+.zone-pop__lim { font-variant-numeric: tabular-nums; }
+.zone-pop__note { color: var(--accent); font-weight: 600; }
+.zone-pop__src { margin: 10px 0 0; color: var(--muted); font-size: 11px; }
+
+@media (min-width: 960px) {
+  /* Under the zoom control (two 40px buttons + border). */
+  .layers { --ly-top: calc(var(--gap) + 82px + 10px); }
+  .layers__btn { width: 42px; height: 42px; border-radius: 14px; }
+}
+
+/* Mobile: same as the filters card, solid over a dimmed map and bottom sheet. */
+@media (max-width: 959.98px) {
+  .layers__backdrop { background: rgb(0 0 0 / 0.32); }
+  .layers__card { background: var(--surface-strong); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
