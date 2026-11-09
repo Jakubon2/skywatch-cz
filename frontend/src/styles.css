@@ -133,7 +133,7 @@ body {
 }
 .panel--open { transform: translateY(0); }
 
-.panel__handle { flex: none; padding: 0 12px 10px; }
+.panel__handle { flex: none; padding: 0 12px 10px; touch-action: none; } /* dragged by App.jsx useSheetDrag */
 .panel__grab {
   display: grid;
   place-items: center;
@@ -190,7 +190,6 @@ body {
 /* ---------- Aircraft markers ---------- */
 
 .ac-marker { background: none; border: 0; }
-.glide .ac-marker { transition: transform 10s linear; } /* glide between 10 s snapshots */
 
 .ac {
   position: relative;
@@ -352,7 +351,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .dot, .ac--sel::before { animation: none; }
-  .panel, .ac, .glide .ac-marker { transition: none; }
+  .panel, .ac { transition: none; }
 }
 
 /* "Úspora baterie" (state.jsx toggles html.saver): no looping or gliding animations. */
@@ -532,7 +531,6 @@ input::placeholder, textarea::placeholder { color: var(--muted); }
 .ac--sel + .ac-lbl { display: block; }
 .ac--dim:not(.ac--sel) + .ac-lbl { display: none; }
 .ac--sel + .ac-lbl { border-color: var(--accent); }
-.ac-lbl--hide { visibility: hidden; } /* lost to a more important overlapping label (Map.jsx declutter) */
 
 /* Heavies (A5: B777, A350, B747…) drawn a bit larger than other airliners. */
 .ac--heavy svg { width: calc(var(--ac, 22px) * 1.2); height: calc(var(--ac, 22px) * 1.2); }

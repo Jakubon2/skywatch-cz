@@ -108,7 +108,7 @@ function AirspaceLayer({ data }) {
         style: (f) => ({ weight: 1.5, opacity: 0.85, fillOpacity: 0.05, ...(ZONE_STYLE[f.properties.kind] || ZONE_STYLE.RMZ) }),
       }).addTo(map);
       const onClick = (e) => {
-        if (selRef.current) return; // that tap just closes the aircraft detail
+        if (selRef.current || map.planeAt?.(e.containerPoint)) return; // closes the detail / selects a plane
         const { lat, lng } = e.latlng;
         const hits = data.features.filter((f) => contains(f.geometry, lng, lat));
         if (!hits.length) return;

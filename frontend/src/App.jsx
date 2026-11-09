@@ -1,5 +1,5 @@
-import { Suspense, useState } from "react";
-import Map from "./Map.jsx";
+import { Suspense, useRef, useState } from "react";
+import Map, { isDesktop } from "./Map.jsx";
 import Detail from "./Detail.jsx";
 import { TABS } from "./tabs.js";
 import { AppProvider, useApp } from "./state.jsx";
@@ -100,10 +100,54 @@ function Nav() {
   );
 }
 
+// Mobile bottom sheet: drag the handle/tab bar down to collapse it, up to open it. A short move is still a tap.
+function useSheetDrag(open, setOpen) {
+  const drag = useRef(null);
+  const suppress = useRef(false);
+  const panel = (e) => e.currentTarget.closest(".panel");
+  const onPointerDown = (e) => {
+    if (isDesktop() || e.button > 0) return;
+    // Collapsed, the sheet shows just this handle, so it sits (sheet height - handle height) lower.
+    drag.current = { y: e.clientY, dy: 0, moved: false, peek: panel(e).offsetHeight - e.currentTarget.offsetHeight };
+  };
+  const onPointerMove = (e) => {
+    const d = drag.current;
+    if (!d) return;
+    d.dy = e.clientY - d.y;
+    if (!d.moved && Math.abs(d.dy) < 8) return;
+    if (!d.moved) {
+      d.moved = true;
+      e.currentTarget.setPointerCapture(e.pointerId);
+      panel(e).style.transition = "none";
+    }
+    // Follow the finger, clamped between fully open and the collapsed peek.
+    const y = Math.min(d.peek, Math.max(0, (open ? 0 : d.peek) + d.dy));
+    panel(e).style.transform = `translateY(${y}px)`;
+  };
+  const onPointerUp = (e) => {
+    const d = drag.current;
+    drag.current = null;
+    if (!d?.moved) return;
+    const el = panel(e);
+    el.style.transition = "";
+    el.style.transform = "";
+    if (open && d.dy > 60) setOpen(false);
+    else if (!open && d.dy < -60) setOpen(true);
+    // The drag may end over a tab button: that release isn't a tap.
+    suppress.current = true;
+    setTimeout(() => (suppress.current = false), 0);
+  };
+  const onClickCapture = (e) => {
+    if (suppress.current) e.stopPropagation();
+  };
+  return { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp, onClickCapture };
+}
+
 function Shell() {
   const { aircraft, status, dataAt, selectedHex, selected, selectedLost, select, view, open, setOpen, setMap, dimmed } = useApp();
   const tab = TABS.find((t) => t.id === view) || TABS[0];
   const Active = tab.component;
+  const sheetDrag = useSheetDrag(open, setOpen);
 
   return (
     <div className="app">
@@ -119,7 +163,7 @@ function Shell() {
       </header>
 
       <aside className={`panel panel--${selected ? "detail" : tab.id} ${open ? "panel--open" : ""}`}>
-        <div className="panel__handle">
+        <div className="panel__handle" {...sheetDrag}>
           <button className="panel__grab" onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? "Sbalit panel" : "Rozbalit panel"}>
             <span className="grabber" />
           </button>
