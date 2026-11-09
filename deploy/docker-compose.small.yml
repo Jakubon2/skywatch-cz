@@ -1,0 +1,12 @@
+# Override for small servers (1 GB RAM, e.g. Google Cloud e2-micro): the frontend is built on
+# the developer machine and uploaded as frontend/dist, so the server never runs Node/npm.
+#
+#   npm --prefix frontend run build          # locally
+#   rsync ... frontend/dist                   # upload with the rest of the repo
+#   docker compose -f docker-compose.yml -f deploy/docker-compose.small.yml up -d --build
+services:
+  caddy:
+    build: !reset null
+    image: caddy:2-alpine
+    volumes:
+      - ./frontend/dist:/srv:ro

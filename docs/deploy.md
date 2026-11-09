@@ -174,3 +174,22 @@ Logy se rotují (3 × 10 MB na službu). Přístupový log Caddy je vypnutý. Po
 | `NTFY_TOPIC` | téma ntfy.sh pro alerty |
 | `DOMAIN` | doména pro Caddy, např. `skywatch.tvoje-domena.cz` |
 | `SKYWATCH_TOKEN` | přístupový token, `openssl rand -hex 32` |
+
+## Varianta zdarma: Google Cloud e2-micro (nasazeno 9. 11. 2026)
+
+Free tier Google Cloud: 1× **e2-micro** (1 GB RAM) v `us-central1`/`us-east1`/`us-west1`, **Standard** persistent disk 30 GB, zhruba 1 GB odchozích dat měsíčně. Zálohy (snapshot schedule) a Ops Agent vypnout, nejsou zdarma a zbytečně berou paměť.
+
+- Server: Debian 13, uživatel `skywatch`, SSH klíč `~/.ssh/skywatch_oracle`, 2 GB swap (`/swapfile`), `docker.io` + `docker-compose` z Debianu.
+- Doména bez registrace: `<IP s pomlčkami>.sslip.io`. DNS ukazuje rovnou na IP a Caddy na ni dostane certifikát Let's Encrypt.
+- Na 1 GB RAM se **frontend sestavuje lokálně** a nahrává jako `frontend/dist`. Override [`deploy/docker-compose.small.yml`](../deploy/docker-compose.small.yml) pak místo Node buildu jen připojí hotové soubory do Caddy.
+- `.env` na serveru = lokální `.env` + `DOMAIN` + `SKYWATCH_TOKEN`. Token je lokálně v `data/server-token.txt` (gitignored).
+
+Aktualizace z Macu:
+
+```bash
+npm --prefix frontend run build
+rsync -az --delete -e "ssh -i ~/.ssh/skywatch_oracle" --exclude .git --exclude .venv --exclude node_modules --exclude 'data/' --exclude .env --exclude __pycache__ --exclude .pytest_cache --exclude .claude --exclude fixtures ./ skywatch@SERVER_IP:skywatch/
+ssh -i ~/.ssh/skywatch_oracle skywatch@SERVER_IP 'cd skywatch && docker compose -f docker-compose.yml -f deploy/docker-compose.small.yml up -d --build'
+```
+
+Hlídej si náklady: Billing → Budgets & alerts, rozpočet 1 $ s e-mailovým upozorněním.
