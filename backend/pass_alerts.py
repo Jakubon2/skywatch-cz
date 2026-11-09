@@ -6,6 +6,7 @@ each predicted pass at most once per subscription and day (table pass_alert_sent
 """
 
 import logging
+import math
 import sqlite3
 import time
 from datetime import datetime
@@ -69,7 +70,7 @@ class Checker:
 
     def __init__(self, conn: sqlite3.Connection):
         self.conn = conn
-        self.last = 0.0
+        self.last = -math.inf  # "never" (monotonic counts from boot, so 0.0 would mean "just now")
 
     async def __call__(self, poller, new_events):
         cfg = CONFIG["pass_alerts"]

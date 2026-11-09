@@ -37,7 +37,7 @@ class Upstream:
         self.cfg = CONFIG["enrich"][name]
         self.cache: dict[str, tuple[float, dict | None]] = {}
         self.lock = asyncio.Lock()
-        self.last = 0.0
+        self.last = -math.inf  # "never" (monotonic counts from boot, so 0.0 would mean "just now")
         self.calls: list[float] = []
 
     def cached(self, key: str):

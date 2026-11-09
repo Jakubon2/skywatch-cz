@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import math
 from contextlib import asynccontextmanager
 from typing import Literal
 
@@ -96,7 +97,7 @@ from fastapi import HTTPException, Query  # noqa: E402
 
 _geocode_cache: dict[str, list[dict]] = {}
 _geocode_lock = asyncio.Lock()
-_geocode_last = 0.0
+_geocode_last = -math.inf  # "never" (monotonic counts from boot)
 
 
 def _geocode_label(r: dict) -> str:

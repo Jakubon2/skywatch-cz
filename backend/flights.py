@@ -204,7 +204,7 @@ class Tracker:
         self.local: set[str] = set()   # callsigns in the latest area snapshot
         self.cfg = CONFIG["flights"]
         self.global_hits: dict[str, tuple[float, dict | None]] = {}  # callsign -> (time, sample or None)
-        self.last_global = 0.0
+        self.last_global = -math.inf  # "never"; 0.0 breaks right after boot (monotonic = uptime)
         self.turn = 0
         self.route_tried: dict[str, float] = {}
 
@@ -334,7 +334,7 @@ def make_router(poller) -> APIRouter:
                      (t.device_id, t.query.strip().upper(), callsign, t.endpoint, time.time(),
                       json.dumps({"status": "waiting"})))
         conn.commit()
-        tracker.last_global = 0.0   # look it up on the next free slot
+        tracker.last_global = -math.inf   # look it up on the next free slot
         await tracker(poller, [])   # pick it up right away if it's in our area
         return listing(t.device_id)
 
