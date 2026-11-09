@@ -103,6 +103,7 @@ function AirspaceLayer({ data }) {
       const features = [...data.features].reverse();
       const layer = L.geoJSON(features, {
         interactive: false,
+        renderer: L.canvas({ padding: 0.5 }), // one canvas instead of ~240 dashed SVG paths: smooth panning
         attribution: data.attribution,
         style: (f) => ({ weight: 1.5, opacity: 0.85, fillOpacity: 0.05, ...(ZONE_STYLE[f.properties.kind] || ZONE_STYLE.RMZ) }),
       }).addTo(map);

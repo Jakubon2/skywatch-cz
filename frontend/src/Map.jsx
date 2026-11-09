@@ -57,31 +57,43 @@ function labelPriority(a, sel) {
   return p;
 }
 
+// Label box size estimated from its text (styles.css .ac-lbl: 11.5px font, 7px padding, 2 lines).
+// Estimating instead of measuring keeps declutter free of layout reads, which made the map stutter on phones.
+function labelSize(a) {
+  const top = callsign(a).length * 7.4 + (a.t ? a.t.length * 6.6 + 4 : 0);
+  const info = labelInfo(a);
+  return { w: Math.max(top, info.length * 6.4) + 16, h: info ? 36 : 21 };
+}
+
 // Greedy label placement: best label first, skip any that would overlap one already placed.
-// Hidden labels use visibility (not display) so they can still be measured.
+// Only cheap reads (classes, positions) and only class writes that change something.
 function declutter(map, markers, selectedHex) {
   const box = map.getContainer();
   const on = box.classList.contains("z-labels") && !box.classList.contains("labels-off");
+  const groundOn = box.classList.contains("z-ground-labels");
+  const view = map.getBounds().pad(0.3);
   const items = [];
   for (const [hex, entry] of markers) {
-    const lbl = entry.marker.getElement()?.lastChild;
-    if (!lbl) continue;
-    if (!on || !lbl.offsetWidth) {
-      lbl.classList.remove("ac-lbl--hide");
+    const el = entry.marker.getElement();
+    if (!el) continue;
+    const lbl = el.lastChild;
+    const sel = hex === selectedHex;
+    const shown = sel || (on && !el.firstChild.classList.contains("ac--dim") && (groundOn || !isGround(entry.a)));
+    if (!shown || !view.contains(entry.marker.getLatLng())) {
+      if (lbl.classList.contains("ac-lbl--hide")) lbl.classList.remove("ac-lbl--hide");
       continue;
     }
-    const sel = hex === selectedHex;
     // Small bonus for labels already shown, so they don't flicker between snapshots.
     const keep = lbl.classList.contains("ac-lbl--hide") ? 0 : 5;
-    items.push({ lbl, sel, prio: labelPriority(entry.a, sel) + keep, p: map.latLngToLayerPoint(entry.marker.getLatLng()) });
+    const p = map.latLngToLayerPoint(entry.marker.getLatLng());
+    // Icon is 32×32 centred on the point; the label sits at left 29px, top 3px (styles.css).
+    items.push({ lbl, sel, prio: labelPriority(entry.a, sel) + keep, r: { x: p.x + 13, y: p.y - 13, ...labelSize(entry.a) } });
   }
   items.sort((x, y) => y.prio - x.prio);
   const placed = [];
-  for (const it of items) {
-    // Icon is 32×32 centred on the point; the label sits at left 29px, top 3px (styles.css).
-    const r = { x: it.p.x + 13, y: it.p.y - 13, w: it.lbl.offsetWidth, h: it.lbl.offsetHeight };
-    const hit = !it.sel && placed.some((q) => r.x < q.x + q.w + 2 && q.x < r.x + r.w + 2 && r.y < q.y + q.h + 2 && q.y < r.y + r.h + 2);
-    it.lbl.classList.toggle("ac-lbl--hide", hit);
+  for (const { lbl, sel, r } of items) {
+    const hit = !sel && placed.some((q) => r.x < q.x + q.w + 2 && q.x < r.x + r.w + 2 && r.y < q.y + q.h + 2 && q.y < r.y + r.h + 2);
+    if (hit !== lbl.classList.contains("ac-lbl--hide")) lbl.classList.toggle("ac-lbl--hide", hit);
     if (!hit) placed.push(r);
   }
 }
@@ -118,11 +130,11 @@ export default function Map({ aircraft, selectedHex, onSelect, onReady, dimmed }
     map.on("zoomstart", () => box.classList.remove("glide"));
     map.on("zoomend", () => {
       sizeIcons();
-      declutter(map, markers.current, selRef.current);
       requestAnimationFrame(() => requestAnimationFrame(() => box.classList.add("glide")));
     });
     map.on("click", () => onSelectRef.current(null));
-    map.on("labelschange", () => declutter(map, markers.current, selRef.current)); // fired by MapLayers
+    // moveend also follows every zoom; labelschange is fired by MapLayers.
+    map.on("moveend labelschange", () => declutter(map, markers.current, selRef.current));
 
     mapRef.current = map;
     onReady?.(map);
@@ -211,10 +223,10 @@ export default function Map({ aircraft, selectedHex, onSelect, onReady, dimmed }
     if (entry) mapRef.current.panInside(entry.marker.getLatLng(), overlayPadding());
   }, [selectedHex]);
 
-  // Last effect, so it sees the dim/selection classes set above.
+  // Last effect, so it sees the dim/selection classes set above. Only when the data, filter or selection change.
   useEffect(() => {
     if (mapRef.current) declutter(mapRef.current, markers.current, selectedHex);
-  });
+  }, [aircraft, dimmed, selectedHex]);
 
   return <div ref={el} className="map" />;
 }

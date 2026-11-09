@@ -60,6 +60,13 @@ body {
   .leaflet-tile { filter: invert(1) hue-rotate(180deg) grayscale(0.7) brightness(0.82) contrast(0.95); }
 }
 
+/* Phones: blurring the moving map behind glass panels costs a repaint every frame while panning,
+   so touch devices get solid panels instead. */
+@media (pointer: coarse) {
+  :root { --surface: color-mix(in srgb, var(--surface-strong) 94%, transparent); }
+  * { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+}
+
 
 /* ---------- Top bar ---------- */
 
@@ -206,8 +213,7 @@ body {
   fill: hsl(var(--h) 85% var(--plane-l));
   stroke: var(--plane-stroke);
   stroke-width: 1.4;
-  paint-order: stroke;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+  paint-order: stroke; /* the stroke separates planes from the map; a drop-shadow filter was too slow on phones */
   transition: width 0.2s, height 0.2s;
 }
 .ac--ground svg { width: calc(var(--ac, 22px) * 0.7); height: calc(var(--ac, 22px) * 0.7); fill: var(--muted); }
