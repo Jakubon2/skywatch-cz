@@ -53,12 +53,7 @@ body {
 .map { position: absolute; inset: 0; }
 .leaflet-container { background: var(--bg); font: inherit; }
 
-/* Mute the colourful OSM style so aircraft stand out.
-   Filter per tile, not on the pane: a pane-level filter shows seams between tiles. */
-.leaflet-tile { filter: grayscale(0.85) contrast(0.92) brightness(1.04); }
-@media (prefers-color-scheme: dark) {
-  .leaflet-tile { filter: invert(1) hue-rotate(180deg) grayscale(0.7) brightness(0.82) contrast(0.95); }
-}
+/* Tiles are muted in tiles.js (baked into the pixels; a CSS filter here made panning stutter). */
 
 /* Phones: blurring the moving map behind glass panels costs a repaint every frame while panning,
    so touch devices get solid panels instead. */

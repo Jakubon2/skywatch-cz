@@ -1,10 +1,11 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
+import { MutedTileLayer } from "./tiles.js";
 import { AIRCRAFT_ICONS, EMERGENCY_SQUAWKS, aircraftKind, altitudeHue, callsign, isGround } from "./aircraft.js";
 
 const CZ_BOUNDS = [[48.55, 12.09], [51.06, 18.86]];
 
-// OSM tiles need no key; styles.css mutes them (and inverts them in dark mode).
+// OSM tiles need no key; tiles.js mutes them (and inverts them in dark mode).
 // Swap in a keyed provider (MapTiler, Stadia, ...) via VITE_TILE_URL if needed.
 const TILE_URL = import.meta.env.VITE_TILE_URL || "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 const TILE_ATTRIBUTION =
@@ -114,9 +115,10 @@ export default function Map({ aircraft, selectedHex, onSelect, onReady, dimmed }
 
     L.control.attribution({ position: "bottomright", prefix: "Data: adsb.lol (ODbL)" }).addTo(map);
     L.control.zoom({ position: "topright" }).addTo(map);
-    L.tileLayer(TILE_URL, { maxZoom: 18, attribution: TILE_ATTRIBUTION }).addTo(map);
+    new MutedTileLayer(TILE_URL, { maxZoom: 18, attribution: TILE_ATTRIBUTION }).addTo(map);
 
-    // Planes glide between 10 s snapshots; pause gliding while Leaflet repositions on zoom.
+    // Planes glide between 10 s snapshots. Gliding pauses while the map pans or zooms: 180 running
+    // animations under a moving map made it stutter on phones (and Leaflet repositions markers on zoom).
     const box = map.getContainer();
     box.classList.add("glide");
     // Smaller planes when zoomed out, so busy airspace doesn't turn into a blob.
@@ -127,11 +129,9 @@ export default function Map({ aircraft, selectedHex, onSelect, onReady, dimmed }
       box.classList.toggle("z-ground-labels", z >= GROUND_LABEL_ZOOM);
     };
     sizeIcons();
-    map.on("zoomstart", () => box.classList.remove("glide"));
-    map.on("zoomend", () => {
-      sizeIcons();
-      requestAnimationFrame(() => requestAnimationFrame(() => box.classList.add("glide")));
-    });
+    map.on("movestart", () => box.classList.remove("glide"));
+    map.on("zoomend", sizeIcons);
+    map.on("moveend", () => requestAnimationFrame(() => requestAnimationFrame(() => box.classList.add("glide"))));
     map.on("click", () => onSelectRef.current(null));
     // moveend also follows every zoom; labelschange is fired by MapLayers.
     map.on("moveend labelschange", () => declutter(map, markers.current, selRef.current));
