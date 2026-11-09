@@ -1,4 +1,5 @@
 import shutil
+import sqlite3
 from types import SimpleNamespace
 
 import pytest
@@ -81,13 +82,15 @@ def test_run_all_and_dedup_with_real_config():
 
 def test_starter_list_is_sourced_and_unique():
     entries = load_context()["watchlist"]["entries"]
-    assert 20 <= len(entries) <= 40
+    assert len(entries) >= 20
     regs = [watched.norm_reg(e["reg"]) for e in entries]
     assert len(regs) == len(set(regs))
     for e in entries:
         assert e["source"].startswith("https://"), e
         assert e["checked"] and e["label"] and e["category"], e
         assert e.get("hex") is None or len(e["hex"]) == 6, e
+    hexes = [e["hex"] for e in entries if e.get("hex")]
+    assert len(hexes) == len(set(hexes))
 
 
 # --- endpoints ---------------------------------------------------------------
@@ -99,7 +102,10 @@ def setup(tmp_path):
     real = load_context()
     entries = real["watchlist"]["entries"]
     first, second = entries[0], entries[1]
+    db = sqlite3.connect(":memory:", check_same_thread=False)
+    db.row_factory = sqlite3.Row
     poller = SimpleNamespace(
+        db=db, listeners=[],
         ctx={"cfg": real["cfg"], "watchlist": watched.index(watchlist.load(path))},
         latest={"now": NOW * 1000, "ac": [
             sample(first["hex"], first["reg"]),
@@ -159,3 +165,37 @@ def test_chat_tool_lists_watched_in_range(setup):
     assert r["aircraft"][0]["label"] == setup.first["label"] and r["caveat"]
     r = chat.run_tool(setup.poller, "watched_aircraft", {"only_czechia": True})
     assert r["count"] == 1  # 50.1 / 14.3 is near Prague
+
+
+def test_visits_recorded_with_airports_and_directions(setup, monkeypatch):
+    import watched_history
+    poller, first = setup.poller, setup.first
+    rec = poller.listeners[0]
+    lkpr = {"ident": "LKPR", "iata": "PRG", "name": "Václav Havel Airport Prague", "city": "Praha", "lat": 50.1008, "lon": 14.26}
+    monkeypatch.setattr(watched_history.airports, "nearest", lambda lat, lon, km: lkpr if abs(lat - 50.1) < 0.05 else None)
+    # took off from Prague, left high to the west, and came back to land a day later
+    for t, lat, lon, alt in [(0, 50.10, 14.26, "ground"), (60, 50.12, 14.0, 3000), (600, 49.9, 12.2, 39000)]:
+        poller.latest = {"now": (NOW + t) * 1000, "ac": [sample(first["hex"], first["reg"], lat=lat, lon=lon, alt_baro=alt)]}
+        rec(poller, [])
+    for t, lat, lon, alt in [(86400, 51.0, 15.5, 30000), (87000, 50.10, 14.27, "ground")]:
+        poller.latest = {"now": (NOW + t) * 1000, "ac": [sample(first["hex"], first["reg"], lat=lat, lon=lon, alt_baro=alt)]}
+        rec(poller, [])
+    v = setup.client.get("/api/watchlist/visits").json()["visits"]
+    assert len(v) == 2 and v[0]["label"] == first["label"]
+    assert v[0]["from"] == "přiletělo od severu" and v[0]["to"] == "přistálo na letišti Praha (PRG)"
+    assert v[1]["from"] == "vzlétlo z letiště Praha (PRG)" and v[1]["to"] == "odletělo na západ"
+    entry = next(e for e in setup.client.get("/api/watchlist").json()["entries"] if e["reg"] == first["reg"])
+    assert entry["last_visit"]["end"] == NOW + 87000
+
+
+def test_ladd_aircraft_leave_no_visits(setup):
+    poller, second = setup.poller, setup.second
+    poller.latest = {"now": NOW * 1000, "ac": [sample(second["hex"], second["reg"], dbFlags=8)]}
+    poller.listeners[0](poller, [])
+    assert setup.client.get("/api/watchlist/visits").json()["visits"] == []
+
+
+def test_compass_names():
+    import watched_history
+    assert watched_history.compass(0) == "sever" and watched_history.compass(135) == "jihovýchod"
+    assert watched_history.compass(350) == "sever" and watched_history.compass(270, watched_history.DIRECTIONS_FROM) == "západu"

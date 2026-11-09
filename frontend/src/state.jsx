@@ -128,8 +128,10 @@ export function AppProvider({ children }) {
     document.documentElement.classList.toggle("saver", Boolean(saver));
   }, [saver]);
   const [map, setMap] = useState(null);
-  const [view, setView] = useState("map");
-  const [open, setOpen] = useState(false); // mobile bottom sheet expanded
+  // ?view=flights opens a tab directly (push notifications link there).
+  const linked = new URLSearchParams(location.search).get("view") === "flights";
+  const [view, setView] = useState(linked ? "flights" : "map");
+  const [open, setOpen] = useState(linked); // mobile bottom sheet expanded
   const [selectedHex, setSelectedHex] = useState(null);
   const [home, setHome] = useStored("skywatch.home", null); // {label, lat, lon} or null
 

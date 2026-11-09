@@ -37,6 +37,9 @@ class Poller:
         # Called after every live snapshot as listener(poller, new_events); sync or async.
         # Feature modules (explanations, alerts, history...) register here instead of editing ingest().
         self.listeners: list = []
+        self.client: AdsbClient | None = None
+        # Optional: returns a coroutine for one extra adsb.lol request that replaces a snapshot (flights.py).
+        self.side_request = None
 
     def _seed_dedup(self):
         """Restore the dedup window from stored events, so a restart (or --reload) doesn't
@@ -106,8 +109,9 @@ class Poller:
                 log.exception("listener %s failed", getattr(listener, "__name__", listener))
 
     async def run(self):
-        client = AdsbClient()
+        client = self.client = AdsbClient()
         try:
-            await poll_forever(client, self._on_snapshot)
+            await poll_forever(client, self._on_snapshot,
+                               side_request=lambda: self.side_request() if self.side_request else None)
         finally:
             await client.close()

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import { useApp, useInterval, useMapLayer, usePollMs, useStored } from "./state.jsx";
 import { EMERGENCY_SQUAWKS, altitudeHue, callsign, isGround } from "./aircraft.js";
+import { trackFlight } from "./Flights.jsx";
 import "./Detail.css";
 
 const num = (n) => Math.round(n).toLocaleString("cs-CZ");
@@ -111,6 +112,26 @@ function Stat({ label, value: [main, sub] }) {
       <span className="stat__label">{label}</span>
       <span className="stat__value">{main}</span>
       {sub && <span className="stat__sub">{sub}</span>}
+    </div>
+  );
+}
+
+// "Sledovat let": adds the flight to Moje lety (Flights.jsx) and opens that tab.
+function TrackButton({ cs }) {
+  const { setView } = useApp();
+  const [s, setS] = useState({ busy: false, error: null });
+  const go = () => {
+    setS({ busy: true, error: null });
+    trackFlight(cs)
+      .then(() => setView("flights"))
+      .catch((e) => (/už sleduješ/.test(e.message) ? setView("flights") : setS({ busy: false, error: e.message })));
+  };
+  return (
+    <div className="track-btn">
+      <button className="btn btn--ghost btn--block" disabled={s.busy} onClick={go}>
+        Sledovat let a upozornit na přistání
+      </button>
+      {s.error && <p className="form-note form-note--error">{s.error}</p>}
     </div>
   );
 }
@@ -371,6 +392,7 @@ export default function Detail({ a, lost, onClose }) {
 
       <Photo key={`p${a.hex}`} a={a} />
       <Route key={`r${a.hex}${cs}`} res={routeRes} prog={prog} />
+      {cs && !isGround(a) && <TrackButton key={`t${cs}`} cs={cs} />}
 
       <div className="stats">
         <Stat label="Výška" value={altitude(a)} />

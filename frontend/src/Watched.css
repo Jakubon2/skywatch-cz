@@ -203,3 +203,16 @@
 @media (prefers-reduced-motion: reduce) {
   .wl-ring, .wl-flying__dot { animation: none; }
 }
+
+/* Visits over our area (backend/watched_history.py) */
+.wl-entry__visit { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+.wl-entry__visit b { color: var(--text); font-weight: 600; }
+.wl-visits { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.wl-visits li {
+  display: flex; align-items: baseline; gap: 12px;
+  padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-strong);
+}
+.wl-visits__when { flex: none; min-width: 72px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.wl-visits__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.wl-visits__main b { font-size: 14px; font-weight: 650; }
+.wl-visits__main small { color: var(--muted); font-size: 12.5px; line-height: 1.4; }

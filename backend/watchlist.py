@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
 from config import ROOT
+import watched_history
 from detectors.watched import index, match, norm_reg
 
 NOTE = ("Vlastníci letadel pocházejí z veřejných zdrojů a můžou být zastaralí: letadla se prodávají, "
@@ -70,6 +71,8 @@ def make_router(poller, path=None) -> APIRouter:
     cfg = poller.ctx["cfg"]["watched"]
     lock = threading.Lock()
 
+    watched_history.init(poller)
+
     def publish(entries):
         poller.ctx["watchlist"] = index(entries)  # the detector sees the change on the next snapshot
 
@@ -83,11 +86,18 @@ def make_router(poller, path=None) -> APIRouter:
             entry = match(a, wl, cfg)
             if entry is not None:
                 live[norm_reg(entry["reg"])] = {k: a[k] for k in LIVE_FIELDS if k in a}
+        visits = watched_history.last_visits(poller.db, wl["entries"])
         return {
             "now": latest["now"] if latest else None,
             "note": NOTE,
-            "entries": [{**e, "live": live.get(norm_reg(e["reg"]))} for e in wl["entries"]],
+            "entries": [{**e, "live": live.get(norm_reg(e["reg"])), "last_visit": visits.get(norm_reg(e["reg"]))}
+                        for e in wl["entries"]],
         }
+
+    @router.get("/watchlist/visits")
+    def visits(limit: int = 20):
+        """Most recent visits of watched aircraft over our area, newest first."""
+        return {"visits": watched_history.recent(poller.db, poller.ctx["watchlist"]["entries"], min(limit, 100))}
 
     @router.post("/watchlist", status_code=201)
     def add(entry: Entry):

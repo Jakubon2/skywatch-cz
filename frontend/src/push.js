@@ -108,3 +108,13 @@ export async function sendTestPush() {
   if (!sub) throw new Error("Upozornění na tomto zařízení nejsou zapnutá.");
   return post("/api/push/test", { endpoint: sub.endpoint });
 }
+
+/** This device's push endpoint, or null when push is off/unsupported (lets the backend notify only this device). */
+export async function pushEndpoint() {
+  try {
+    if (!isPushSupported().supported || Notification.permission !== "granted") return null;
+    return (await currentSubscription())?.endpoint || null;
+  } catch {
+    return null;
+  }
+}

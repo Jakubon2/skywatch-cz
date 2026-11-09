@@ -131,9 +131,10 @@ function AirspaceLayer({ data }) {
 export default function MapLayers() {
   const [on, setOn] = useStored("skywatch.layers", { radar: false, airspace: false, labels: true });
   const labelsOn = on.labels !== false; // older stored settings have no `labels` key
-  // Plane labels are drawn by Map.jsx from zoom 9 up; this switch hides them via a class on the map.
+  // Plane labels are drawn by Map.jsx from zoom 7 up (decluttered); this switch hides them via a class on the map.
   useMapLayer((map) => {
     map.getContainer().classList.toggle("labels-off", !labelsOn);
+    map.fire("labelschange");
   }, [labelsOn]);
   const [open, setOpen] = useState(false);
   const radar = useFetched("/api/radar", on.radar, RADAR_REFRESH_MS);

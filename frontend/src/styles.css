@@ -531,8 +531,10 @@ input::placeholder, textarea::placeholder { color: var(--muted); }
 .ac--sel + .ac-lbl { display: block; }
 .ac--dim:not(.ac--sel) + .ac-lbl { display: none; }
 .ac--sel + .ac-lbl { border-color: var(--accent); }
+.ac-lbl--hide { visibility: hidden; } /* lost to a more important overlapping label (Map.jsx declutter) */
 
 /* Heavies (A5: B777, A350, B747…) drawn a bit larger than other airliners. */
 .ac--heavy svg { width: calc(var(--ac, 22px) * 1.2); height: calc(var(--ac, 22px) * 1.2); }
 .ac--heavy.ac--sel svg { width: calc(var(--ac, 22px) * 1.2 + 8px); height: calc(var(--ac, 22px) * 1.2 + 8px); }
 .map:not(.z-ground-labels) .ac--ground:not(.ac--sel) + .ac-lbl { display: none; }
+

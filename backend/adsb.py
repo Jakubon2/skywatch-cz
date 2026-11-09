@@ -20,6 +20,7 @@ class RateLimited(Exception):
 class AdsbClient:
     def __init__(self):
         src = CONFIG["source"]
+        self.base = src["base_url"].rstrip("/")
         self.url = (
             f"{src['base_url'].rstrip('/')}/v2/lat/{src['center_lat']}"
             f"/lon/{src['center_lon']}/dist/{src['radius_nm']}"
@@ -40,6 +41,15 @@ class AdsbClient:
         r.raise_for_status()
         return r.json()
 
+    async def fetch_callsign(self, callsign: str) -> dict:
+        """Aircraft flying with this callsign anywhere in the world: {"now": ms, "ac": [...]}."""
+        r = await self.http.get(f"{self.base}/v2/callsign/{callsign}")
+        if r.status_code == 429:
+            retry = r.headers.get("Retry-After")
+            raise RateLimited(float(retry) if retry and retry.isdigit() else None)
+        r.raise_for_status()
+        return r.json()
+
     async def close(self):
         await self.http.aclose()
 
@@ -48,11 +58,14 @@ async def poll_forever(
     client: AdsbClient,
     on_snapshot: Callable[[dict], Awaitable[None] | None],
     stop_at: float | None = None,
+    side_request: Callable[[], Awaitable[None] | None] | None = None,
 ):
     """Fetch a snapshot every interval_s; back off exponentially on 429 or errors.
 
     Requests are spaced at least interval_s apart (measured start to start).
     `stop_at` is a time.monotonic() deadline, None = run forever.
+    `side_request()` may return a coroutine doing one other request to the same API (flight tracking);
+    it then takes this cycle's slot instead of the snapshot, so the request rate never goes up.
     """
     interval = CONFIG["poller"]["interval_s"]
     max_backoff = CONFIG["poller"]["max_backoff_s"]
@@ -61,6 +74,12 @@ async def poll_forever(
     while stop_at is None or time.monotonic() < stop_at:
         started = time.monotonic()
         try:
+            side = side_request() if side_request else None
+            if side is not None:
+                await side
+                failures = 0
+                await asyncio.sleep(max(0.0, interval - (time.monotonic() - started)))
+                continue
             snapshot = await client.fetch()
             failures = 0
             result = on_snapshot(snapshot)

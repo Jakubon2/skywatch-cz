@@ -15,6 +15,7 @@ import chat
 import contrails
 import metar_api
 import feed
+import flights
 import noise
 import pass_alerts
 import push
@@ -55,6 +56,7 @@ app.include_router(watchlist.make_router(poller))
 app.include_router(pass_alerts.make_router(poller))  # heads-up before predicted passes
 app.include_router(board.make_router(poller))  # LKPR arrivals/departures board
 app.include_router(whatwasthat.make_router(poller))  # "Co to bylo?"
+app.include_router(flights.make_router(poller))  # "Moje lety": follow one flight, push on take-off/landing
 
 
 @app.get("/api/health")

@@ -5,19 +5,24 @@
 //   component: rendered in the panel while the tab is active (read shared state with useApp() from state.jsx)
 //   overlay:   optional component that is always mounted, for map layers that should stay visible on every tab
 // Order = order in the nav. On narrow screens the first 4 stay visible and the rest go under "Více".
+import { lazy } from "react";
 import Feed, { FeedLive } from "./Feed.jsx";
-import Alerts from "./Alerts.jsx";
 import Near, { HomePin } from "./Near.jsx";
-import Chat from "./Chat.jsx";
 import Filters from "./Filters.jsx";
-import Sky from "./Sky.jsx";
-import Weather from "./Weather.jsx";
 import MapLayers from "./MapLayers.jsx";
-import Settings from "./Settings.jsx";
-import Stats from "./Stats.jsx";
-import Watched from "./Watched.jsx";
-import Board from "./Board.jsx";
+import Flights, { FlightsLayer } from "./Flights.jsx";
 import { PlaybackOverlay } from "./Playback.jsx";
+
+// Tabs you don't open at start load on demand (own JS chunk), so the app starts faster on a slow phone connection.
+// Tabs whose file also exports an overlay (Feed, Near, Flights) are always needed and stay in the main bundle.
+const Chat = lazy(() => import("./Chat.jsx"));
+const Alerts = lazy(() => import("./Alerts.jsx"));
+const Sky = lazy(() => import("./Sky.jsx"));
+const Stats = lazy(() => import("./Stats.jsx"));
+const Weather = lazy(() => import("./Weather.jsx"));
+const Settings = lazy(() => import("./Settings.jsx"));
+const Watched = lazy(() => import("./Watched.jsx"));
+const Board = lazy(() => import("./Board.jsx"));
 
 export const TABS = [
   { id: "map", label: "Mapa", icon: "M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5zM9 4v13.5M15 6.5V20", component: Feed, overlay: Filters },
@@ -28,6 +33,7 @@ export const TABS = [
   { id: "stats", label: "Statistiky", icon: "M4 20h16M7 16.5V11M12 16.5V6M17 16.5v-8", component: Stats, overlay: PlaybackOverlay },
   { id: "weather", label: "Počasí a hluk", icon: "M7 15a4 4 0 0 1-.6-7.96A5.5 5.5 0 0 1 17 7.5a3.75 3.75 0 0 1 .5 7.47M4 19c1.5-1.3 3-1.3 4.5 0s3 1.3 4.5 0 3-1.3 4.5 0", component: Weather, overlay: MapLayers }, // MapLayers: radar/airspace overlays + switcher on the map
   { id: "watched", label: "Sledované", icon: "M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z", component: Watched },
+  { id: "flights", label: "Moje lety", icon: "M2.5 19.5h19M10.5 13.8 4.6 11l1.6-1 4.6 1.2 4.4-3.7c1-.8 2.6-.9 3.4 0 .5.6.3 1.4-.4 1.9l-11 7.1-2.6-1.6 1.6-.6z", component: Flights, overlay: FlightsLayer },
   { id: "board", label: "Tabule", icon: "M3.5 5.5h17v13h-17zM3.5 12h17M7 8.5h3M12 8.5h5M7 15.5h3M12 15.5h5", component: Board },
   { id: "settings", label: "Nastavení", icon: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 13.5l1.6 1.2-2 3.5-1.9-.7a7 7 0 0 1-1.8 1l-.3 2h-4l-.3-2a7 7 0 0 1-1.8-1l-1.9.7-2-3.5 1.6-1.2a7 7 0 0 1 0-3L3 9.3l2-3.5 1.9.7a7 7 0 0 1 1.8-1l.3-2h4l.3 2a7 7 0 0 1 1.8 1l1.9-.7 2 3.5-1.6 1.2a7 7 0 0 1 0 3z", component: Settings },
 ];

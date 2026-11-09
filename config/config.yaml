@@ -274,3 +274,27 @@ what_was_that:              # "Co to bylo?" (/api/what-was-that, backend/whatwas
     EC45: Airbus H145
     H145: Airbus H145
     A139: Leonardo AW139
+
+flights:                    # "Moje lety": track one flight by number, push on take-off/approach/landing (backend/flights.py)
+  airline_codes: airline_codes.yaml  # IATA (OK, FR) -> ICAO callsign prefix (CSA, RYR)
+  max_per_device: 5
+  max_total: 40
+  # Flights outside our area come from adsb.lol /v2/callsign. To stay at one adsb.lol request per 10 s,
+  # such a lookup replaces one area snapshot, at most once per this many seconds (round robin over flights).
+  global_every_s: 60
+  lost_after_s: 900         # not seen this long = signal lost (or landed, see landed_guess_*)
+  landed_guess_km: 25       # lost this close to the destination...
+  landed_guess_max_ft: 6000 # ...and this low = most likely landed (coverage ends near the ground)
+  approach_km: 60           # within this distance of the destination...
+  approach_max_ft: 12000    # ...and below this = "přistává", one push with the ETA
+  ground_max_kt: 50         # numeric altitude but slower than this = on the ground
+  eta_path_factor: 1.15     # real path is longer than the straight line
+  route_retry_s: 300        # route lookup failed: try again after this
+  keep_landed_h: 6          # landed flights disappear after this
+  keep_waiting_h: 36        # never-seen flights disappear after this
+
+watched_history:            # past sightings of watched (celebrity) aircraft, backend/watched_history.py
+  new_sighting_gap_min: 45  # unseen longer than this = the next sighting is a new visit
+  airport_max_km: 8         # first/last position this close to an airport...
+  airport_max_ft: 4000      # ...and this low = took off from / landed at that airport
+  keep_days: 365

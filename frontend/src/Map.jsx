@@ -29,8 +29,9 @@ export function visiblePadding() {
 
 // Plain Leaflet in refs; no wrapper library. Markers are created once per aircraft and updated in place.
 // Feature overlays get the Leaflet instance through onReady (see state.jsx), so they never need to edit this file.
-// From this zoom up, every plane carries a small data label (selected plane always does).
-const LABEL_ZOOM = 9;
+// From this zoom up, planes carry a small data label (selected plane always does).
+// Where labels would overlap, only the most important one stays (see declutter).
+const LABEL_ZOOM = 7;
 const GROUND_LABEL_ZOOM = 13; // planes and vehicles on the ground crowd the apron, so label them later
 const fmt = (n) => Math.round(n).toLocaleString("cs-CZ");
 
@@ -46,12 +47,53 @@ function labelInfo(a) {
   return parts.join(" · ");
 }
 
+// Which label wins when two overlap: selected, emergency, military, heavy, then higher planes.
+function labelPriority(a, sel) {
+  let p = (a.alt_baro === "ground" ? 0 : 20 + Math.min(a.alt_baro || 0, 45000) / 1000);
+  if (sel) p += 1000;
+  if (a.squawk in EMERGENCY_SQUAWKS) p += 500;
+  if (a.dbFlags & 1) p += 100;
+  if (aircraftKind(a) === "heavy") p += 30;
+  return p;
+}
+
+// Greedy label placement: best label first, skip any that would overlap one already placed.
+// Hidden labels use visibility (not display) so they can still be measured.
+function declutter(map, markers, selectedHex) {
+  const box = map.getContainer();
+  const on = box.classList.contains("z-labels") && !box.classList.contains("labels-off");
+  const items = [];
+  for (const [hex, entry] of markers) {
+    const lbl = entry.marker.getElement()?.lastChild;
+    if (!lbl) continue;
+    if (!on || !lbl.offsetWidth) {
+      lbl.classList.remove("ac-lbl--hide");
+      continue;
+    }
+    const sel = hex === selectedHex;
+    // Small bonus for labels already shown, so they don't flicker between snapshots.
+    const keep = lbl.classList.contains("ac-lbl--hide") ? 0 : 5;
+    items.push({ lbl, sel, prio: labelPriority(entry.a, sel) + keep, p: map.latLngToLayerPoint(entry.marker.getLatLng()) });
+  }
+  items.sort((x, y) => y.prio - x.prio);
+  const placed = [];
+  for (const it of items) {
+    // Icon is 32×32 centred on the point; the label sits at left 29px, top 3px (styles.css).
+    const r = { x: it.p.x + 13, y: it.p.y - 13, w: it.lbl.offsetWidth, h: it.lbl.offsetHeight };
+    const hit = !it.sel && placed.some((q) => r.x < q.x + q.w + 2 && q.x < r.x + r.w + 2 && r.y < q.y + q.h + 2 && q.y < r.y + r.h + 2);
+    it.lbl.classList.toggle("ac-lbl--hide", hit);
+    if (!hit) placed.push(r);
+  }
+}
+
 export default function Map({ aircraft, selectedHex, onSelect, onReady, dimmed }) {
   const el = useRef(null);
   const mapRef = useRef(null);
   const markers = useRef(new globalThis.Map()); // hex -> { marker, rot }
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
+  const selRef = useRef(selectedHex);
+  selRef.current = selectedHex;
 
   useEffect(() => {
     const map = L.map(el.current, { zoomControl: false, attributionControl: false });
@@ -76,9 +118,11 @@ export default function Map({ aircraft, selectedHex, onSelect, onReady, dimmed }
     map.on("zoomstart", () => box.classList.remove("glide"));
     map.on("zoomend", () => {
       sizeIcons();
+      declutter(map, markers.current, selRef.current);
       requestAnimationFrame(() => requestAnimationFrame(() => box.classList.add("glide")));
     });
     map.on("click", () => onSelectRef.current(null));
+    map.on("labelschange", () => declutter(map, markers.current, selRef.current)); // fired by MapLayers
 
     mapRef.current = map;
     onReady?.(map);
@@ -107,7 +151,7 @@ export default function Map({ aircraft, selectedHex, onSelect, onReady, dimmed }
           .bindTooltip("", { direction: "top", offset: [0, -14], className: "ac-tip" })
           .on("click", () => onSelectRef.current(a.hex))
           .addTo(map);
-        entry = { marker, rot: a.track ?? 0 };
+        entry = { marker, rot: a.track ?? 0, a };
         markers.current.set(a.hex, entry);
       } else {
         entry.marker.setLatLng([a.lat, a.lon]);
@@ -115,6 +159,7 @@ export default function Map({ aircraft, selectedHex, onSelect, onReady, dimmed }
         if (a.track != null) entry.rot += ((a.track - entry.rot + 540) % 360) - 180;
       }
 
+      entry.a = a;
       const node = entry.marker.getElement()?.firstChild;
       const lbl = node?.nextSibling;
       // Icon by kind of aircraft; the category can arrive a snapshot later, so re-check each time.
@@ -149,6 +194,7 @@ export default function Map({ aircraft, selectedHex, onSelect, onReady, dimmed }
     }
   }, [aircraft]);
 
+
   // Map filter hook: dim planes the filter (Filters.jsx via state.jsx) doesn't match. `dimmed` = Set of hex or null.
   useEffect(() => {
     for (const [hex, { marker }] of markers.current) marker.getElement()?.firstChild.classList.toggle("ac--dim", Boolean(dimmed?.has(hex)));
@@ -164,6 +210,11 @@ export default function Map({ aircraft, selectedHex, onSelect, onReady, dimmed }
     const entry = markers.current.get(selectedHex);
     if (entry) mapRef.current.panInside(entry.marker.getLatLng(), overlayPadding());
   }, [selectedHex]);
+
+  // Last effect, so it sees the dim/selection classes set above.
+  useEffect(() => {
+    if (mapRef.current) declutter(mapRef.current, markers.current, selectedHex);
+  });
 
   return <div ref={el} className="map" />;
 }

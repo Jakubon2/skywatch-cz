@@ -22,7 +22,7 @@
 		handle @login {
 			header Set-Cookie "skywatch_token={$SKYWATCH_TOKEN}; Max-Age=31536000; Path=/; Secure; HttpOnly; SameSite=Lax"
 			header Cache-Control no-store
-			redir / 303
+			redir * / 303
 		}
 
 		# Everything needs the token, except PWA metadata that browsers fetch without cookies

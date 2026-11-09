@@ -255,3 +255,971 @@ aircraft:
   category: královské rody
   source: https://github.com/sdr-enthusiasts/plane-alert-db
   checked: '2026-11-08'
+- reg: C5-RTG
+  hex: 09a01a
+  type: IL62
+  label: Vláda Gambie
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: C5-GAF
+  hex: 09a01b
+  type: B721
+  label: Vláda Gambie
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: C5-GOG
+  hex: 09a027
+  type: B721
+  label: Vláda Gambie
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: C5NBB
+  hex: 09a042
+  type: CL60
+  label: Vláda Gambie
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: HP-1A
+  hex: 0c204e
+  type: E35L
+  label: Vláda Panamy
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: RA-02775
+  hex: 140ad7
+  type: H25B
+  label: Vagit Alekperov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: RA-25101
+  hex: 14620d
+  type: MI8
+  label: Norilsk Nickel
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: RA-25103
+  hex: 14620f
+  type: MI8
+  label: Norilsk Nickel
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: RA-25777
+  hex: 1464b1
+  type: MI8
+  label: Michail Fridman
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: D-APGS
+  hex: 3c00af
+  type: A319
+  label: Alexandr Abramov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: D-ARKO
+  hex: 3c065b
+  type: GLEX
+  label: Alexandr Abramov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: D-ALEX
+  hex: 3c70b8
+  type: A319
+  label: Alexandr Abramov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: D-ALXX
+  hex: 3c7318
+  type: A319
+  label: Alexandr Abramov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: D-ANEO
+  hex: 3c78af
+  type: A19N
+  label: Alexandr Abramov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: VP-CLO
+  hex: 40004e
+  type: F900
+  label: Vagit Alekperov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: VP-BBW
+  hex: 4000ee
+  type: B737
+  label: Sulejman Kerimov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: G-XXEB
+  hex: 405fe9
+  type: S76
+  label: Britská královská rodina
+  category: královské rody
+  note: Letka krále Karla III., na palubě nemusí být nikdo z královské rodiny.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: G-XXED
+  hex: '406004'
+  type: S76
+  label: Britská královská rodina
+  category: královské rody
+  note: Letka krále Karla III., na palubě nemusí být nikdo z královské rodiny.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: G-XXEC
+  hex: 406bc6
+  type: A109
+  label: Britská královská rodina
+  category: královské rody
+  note: Letka krále Karla III., na palubě nemusí být nikdo z královské rodiny.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: GZ-100
+  hex: 406f50
+  type: A109
+  label: Britská královská rodina
+  category: královské rody
+  note: Letka krále Karla III., na palubě nemusí být nikdo z královské rodiny.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: G-XXEE
+  hex: 4081fa
+  type: A139
+  label: Britská královská rodina
+  category: královské rody
+  note: Letka krále Karla III., na palubě nemusí být nikdo z královské rodiny.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: VP-CLS
+  hex: 42413f
+  type: FA7X
+  label: Vagit Alekperov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: VP-CLZ
+  hex: '424175'
+  type: CL60
+  label: Vagit Alekperov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: VP-BKG
+  hex: 4242ae
+  type: A318
+  label: Alexandr Abramov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: VP-CTO
+  hex: 42481f
+  type: GL7T
+  label: Folorunso Alakija
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: M-TINK
+  hex: 424b3e
+  type: FA8X
+  label: Oleg Ťinkov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: M-SOLA
+  hex: 424b60
+  type: EC45
+  label: Roman Abramovič
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: M-DLBR
+  hex: 424b82
+  type: EC75
+  label: Ališer Usmanov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: ZE700
+  hex: 43c146
+  type: B461
+  label: Britská královská rodina
+  category: královské rody
+  note: Letka krále Karla III., na palubě nemusí být nikdo z královské rodiny.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: ZE701
+  hex: 43c147
+  type: B461
+  label: Britská královská rodina
+  category: královské rody
+  note: Letka krále Karla III., na palubě nemusí být nikdo z královské rodiny.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: ZE707
+  hex: 43c704
+  type: B462
+  label: Britská královská rodina
+  category: královské rody
+  note: Letka krále Karla III., na palubě nemusí být nikdo z královské rodiny.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: ZE708
+  hex: 43c705
+  type: B462
+  label: Britská královská rodina
+  category: královské rody
+  note: Letka krále Karla III., na palubě nemusí být nikdo z královské rodiny.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: M-IABU
+  hex: 43e77a
+  type: A343
+  label: Ališer Usmanov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: M-KATE
+  hex: 43e7ba
+  type: A319
+  label: Dmitrij Rybolovlev
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: M-AKAR
+  hex: 43e85d
+  type: S76
+  label: Oleg Děripaska
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: M-ALAY
+  hex: 43e974
+  type: GLF5
+  label: Oleg Děripaska
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: M-UGIC
+  hex: 43e991
+  type: GLF5
+  label: Oleg Děripaska
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: M-SAWO
+  hex: 43e9a7
+  type: GLF5
+  label: Oleg Děripaska
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: M-LCFC
+  hex: 43ea62
+  type: B737
+  label: Leicester City FC
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: M-YSSF
+  hex: 43ea64
+  type: GLEX
+  label: Alexej Mordašov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: M-MAVP
+  hex: 43eaba
+  type: GLEX
+  label: Arkadij Rotenberg
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: OE-IGS
+  hex: 4400d9
+  type: GLEX
+  label: Alexandr Abramov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: OE-INL
+  hex: '440685'
+  type: GL5T
+  label: Vladimir Lisin
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: OE-IPE
+  hex: '440888'
+  type: GLF5
+  label: Vladimir Potanin
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: OE-LUC
+  hex: '440998'
+  type: GLF6
+  label: Vladimir Potanin
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: P4-MES
+  hex: 48434f
+  type: B763
+  label: Roman Abramovič
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: P4-GEM
+  hex: '484363'
+  type: F900
+  label: Viktor Medvedčuk
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: P4-MIS
+  hex: '484495'
+  type: A319
+  label: Viktor Vekselberg
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: P4-BDL
+  hex: 4844a1
+  type: B788
+  label: Roman Abramovič
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: SP-LIG
+  hex: 48ad06
+  type: E75S
+  label: Polská vládní letka
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: SP-LIH
+  hex: 48ad07
+  type: E75S
+  label: Polská vládní letka
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: '0001'
+  hex: 48d960
+  type: GLF5
+  label: Polská vládní letka
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: '0002'
+  hex: 48d961
+  type: GLF5
+  label: Polská vládní letka
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: '0110'
+  hex: 48d980
+  type: B738
+  label: Polská vládní letka
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: '0112'
+  hex: 48d981
+  type: B738
+  label: Polská vládní letka
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: '0111'
+  hex: 48d982
+  type: B738
+  label: Polská vládní letka
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: LX-RAY
+  hex: 4d0207
+  type: GLF6
+  label: Roman Abramovič
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: LX-GLX
+  hex: 4d022c
+  type: GLEX
+  label: Ališer Usmanov
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: LX-FLY
+  hex: 4d023f
+  type: GLEX
+  label: Jevgenij Švidler
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: 9A-CRO
+  hex: 501d13
+  type: CL60
+  label: Vláda Chorvatska
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: K3603
+  hex: 8002cd
+  type: E35L
+  label: Vláda Indie
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N1AZ
+  hex: a0001a
+  type: FA7X
+  label: Arizona Cardinals
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N1DC
+  hex: a00050
+  type: GLF5
+  label: Jerry Jones (Dallas Cowboys)
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N1RP
+  hex: a00187
+  type: GLF5
+  label: Roger Penske
+  category: sport
+  note: Majitel týmu Penske (IndyCar, NASCAR).
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N10AU
+  hex: a0026e
+  type: C25C
+  label: Auburn University
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N102TD
+  hex: a00dcf
+  type: GLF5
+  label: Indianapolis Colts
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N154TS
+  hex: a0dac5
+  type: B738
+  label: Elon Musk
+  category: byznys
+  note: Boeing 737 registrovaný na Falcon Aviation Holdings (spojováno se SpaceX).
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N162JC
+  hex: a0f9e7
+  type: GLF5
+  label: Jim Carrey
+  category: film a TV
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N167TV
+  hex: a10d6c
+  type: GLF5
+  label: Jeffrey Vinik (Tampa Bay Lightning)
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N1969C
+  hex: a1820b
+  type: GLF5
+  label: P. Diddy
+  category: hudba
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N199FS
+  hex: a18a28
+  type: C750
+  label: Florida State Seminoles
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N218KF
+  hex: a1d821
+  type: CL30
+  label: Stan Kroenke
+  category: sport
+  note: Majitel LA Rams, Denver Nuggets a Arsenalu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N221DG
+  hex: a1e50a
+  type: GLF6
+  label: David Geffen
+  category: film a TV
+  note: Zakladatel Geffen Records a DreamWorks.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N223TV
+  hex: a1ede3
+  type: CL30
+  label: Jeffrey Vinik (Tampa Bay Lightning)
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N270GP
+  hex: a2a720
+  type: CL30
+  label: Troy Aikman
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N290CL
+  hex: a2f5b7
+  type: CL30
+  label: Dallas Cowboys
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N313AR
+  hex: a35206
+  type: GLF4
+  label: Alex Rodriguez
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N330RW
+  hex: a3975b
+  type: GLF4
+  label: Russell Wilson
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N36NE
+  hex: a40b24
+  type: B763
+  label: New England Patriots
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N378TP
+  hex: a4533a
+  type: E190
+  label: Tyler Perry
+  category: film a TV
+  note: Embraer 190 registrovaný na ETPC Aviation.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N3880
+  hex: a47b5a
+  type: GA7C
+  label: Mark Zuckerberg
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N225NE
+  hex: a49138
+  type: B763
+  label: New England Patriots
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N4DP
+  hex: a4a848
+  type: GLF4
+  label: Dr. Phil
+  category: film a TV
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N411NB
+  hex: a4d905
+  type: C750
+  label: Vivek Ramaswamy
+  category: politika
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N411ST
+  hex: a4d979
+  type: CL30
+  label: New Orleans Saints
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N435FG
+  hex: a53635
+  type: CL35
+  label: Jacksonville Jaguars
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N444SC
+  hex: a55b0c
+  type: GLF5
+  label: Jay-Z
+  category: hudba
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N5MV
+  hex: a63665
+  type: F900
+  label: Michael Bloomberg
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N500MA
+  hex: a63b04
+  type: F2TH
+  label: Andretti Autosport
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N502SX
+  hex: a64304
+  type: GLF5
+  label: Elon Musk
+  category: byznys
+  note: Registrováno na Falcon Landing LLC (spojováno s Muskem a SpaceX).
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N506AB
+  hex: a6503c
+  type: LJ60
+  label: Luke Bryan
+  category: hudba
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N510SR
+  hex: a6630f
+  type: GLF6
+  label: Miami Dolphins
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N5117
+  hex: a66873
+  type: GLF5
+  label: New York Giants
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N555QB
+  hex: a7135e
+  type: C750
+  label: Judge Judy (Judy Sheindlin)
+  category: film a TV
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N5811M
+  hex: a77c26
+  type: F2TH
+  label: Jerry Moss
+  category: hudba
+  note: Spoluzakladatel A&M Records.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N599TA
+  hex: a7c080
+  type: LJ45
+  label: LSU Tigers
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N600EB
+  hex: a7c7a5
+  type: GA6C
+  label: Len Blavatnik
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N613LF
+  hex: a7fae3
+  type: GLF5
+  label: Frank Lowy
+  category: byznys
+  note: Zakladatel Westfield.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N615KG
+  hex: a80239
+  type: GLF6
+  label: Robert Kraft (New England Patriots)
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N650GL
+  hex: a88d5b
+  type: GLF6
+  label: Leonid Michelson
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N650HA
+  hex: a88d6a
+  type: GLF6
+  label: Marc Benioff
+  category: byznys
+  note: Zakladatel Salesforce.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N652WE
+  hex: a89621
+  type: GLF6
+  label: Eric Schmidt
+  category: byznys
+  note: Bývalý šéf Googlu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N671LE
+  hex: a8e06e
+  type: GLF5
+  label: Len Blavatnik
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N676AS
+  hex: a8f213
+  type: GLF5
+  label: Rick Ross
+  category: hudba
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N7KC
+  hex: a950c0
+  type: F900
+  label: Kenny Chesney
+  category: hudba
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N70AG
+  hex: a9523c
+  type: GLF6
+  label: Los Angeles Chargers
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N701DB
+  hex: a95892
+  type: GLF4
+  label: Dan Bilzerian
+  category: film a TV
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N71KR
+  hex: a97aa5
+  type: CL60
+  label: Kid Rock
+  category: hudba
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N715CB
+  hex: a98ed4
+  type: F2TH
+  label: Cleveland Browns
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N729KF
+  hex: a9c5e2
+  type: GL7T
+  label: Stan Kroenke
+  category: sport
+  note: Majitel LA Rams, Denver Nuggets a Arsenalu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N737LE
+  hex: a9e60b
+  type: B737
+  label: Len Blavatnik
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N761LE
+  hex: aa463e
+  type: GLF6
+  label: Len Blavatnik
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N77VA
+  hex: aa688a
+  type: HDJT
+  label: Tom Cruise
+  category: film a TV
+  note: Malý HondaJet.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N777UK
+  hex: aa84d4
+  type: B772
+  label: Len Blavatnik
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N794UT
+  hex: aac8b5
+  type: BE30
+  label: University of Tennessee
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N795HG
+  hex: aacb4e
+  type: C750
+  label: PGA Tour
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N8AG
+  hex: aadd32
+  type: F900
+  label: Michael Bloomberg
+  category: byznys
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N800MA
+  hex: aae2f1
+  type: H25B
+  label: Marco Andretti
+  category: sport
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N838MF
+  hex: ab772b
+  type: GLF6
+  label: Ronald Perelman
+  category: byznys
+  note: Revlon.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N851FS
+  hex: abab9d
+  type: C25A
+  label: Florida State Seminoles
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N865UT
+  hex: abe33e
+  type: C56X
+  label: University of Tennessee
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N867DA
+  hex: abe924
+  type: B772
+  label: Arizona Cardinals
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N878DB
+  hex: ac145b
+  type: GLF5
+  label: Peter Thiel
+  category: byznys
+  note: Spoluzakladatel PayPalu a Palantiru.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N898TS
+  hex: ac64c6
+  type: F900
+  label: Taylor Swift
+  category: hudba
+  note: Registrováno na Firefly Entertainment.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N934CT
+  hex: acf4c9
+  type: C25B
+  label: Clemson University
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N959KF
+  hex: ad56fd
+  type: GLEX
+  label: Stan Kroenke
+  category: sport
+  note: Majitel LA Rams, Denver Nuggets a Arsenalu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: N992DC
+  hex: adda5f
+  type: CL30
+  label: Dallas Cowboys
+  category: sportovní týmy
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: 82-8000
+  hex: adfdf8
+  type: B742
+  label: Air Force One (prezident USA)
+  category: politika
+  note: Volací znak Air Force One platí jen s prezidentem na palubě.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: 92-9000
+  hex: adfdf9
+  type: B742
+  label: Air Force One (prezident USA)
+  category: politika
+  note: Volací znak Air Force One platí jen s prezidentem na palubě.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: 25-3300
+  hex: af83f3
+  type: B748
+  label: Air Force One (prezident USA)
+  category: politika
+  note: Nový Boeing 747-8 pro prezidenta USA.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: FAB-001
+  hex: e940fa
+  type: F900
+  label: Vláda Bolívie
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'
+- reg: FAB-002
+  hex: e940fb
+  type: FA50
+  label: Vláda Bolívie
+  category: politika
+  note: Vládní letadlo, na palubě nemusí být hlava státu.
+  source: https://github.com/sdr-enthusiasts/plane-alert-db
+  checked: '2026-11-09'

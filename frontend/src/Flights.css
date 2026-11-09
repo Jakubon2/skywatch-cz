@@ -1,0 +1,84 @@
+/* "Moje lety" (Flights.jsx) */
+.flights { display: flex; flex-direction: column; gap: 12px; padding-bottom: 8px; }
+.flights .section-title { margin-bottom: 0; }
+
+.fl-form { display: flex; gap: 8px; }
+.fl-form input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-strong);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px; /* no iOS zoom on focus */
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  outline: none;
+}
+.fl-form input::placeholder { text-transform: none; font-weight: 400; letter-spacing: 0; color: var(--muted); }
+.fl-form input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.fl-form .btn { height: 44px; }
+.flights .form-note { margin: 0 4px; }
+
+.fl-list { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.fl-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface-strong);
+}
+.fl-card__head { display: flex; align-items: flex-start; gap: 10px; }
+.fl-card__head > div { flex: 1; min-width: 0; }
+.fl-card__head h3 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 0.01em; }
+.fl-card__head p { margin: 2px 0 0; color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fl-card__head .icon-btn { flex: none; width: 32px; height: 32px; }
+
+.fl-status {
+  flex: none;
+  margin-top: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.fl-status--waiting, .fl-status--ground, .fl-status--lost { background: color-mix(in srgb, var(--muted) 16%, transparent); color: var(--muted); }
+.fl-status--landed { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+
+.fl-route { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; }
+.fl-route > div:not(.fl-progress) { display: flex; flex-direction: column; min-width: 0; max-width: 96px; }
+.fl-route b { font-size: 22px; font-weight: 700; letter-spacing: 0.02em; }
+.fl-route small { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fl-route__to { align-items: flex-end; text-align: right; }
+.fl-route__to small { max-width: 100%; }
+
+.fl-progress { position: relative; height: 4px; border-radius: 2px; background: var(--border); }
+.fl-progress__bar { height: 100%; border-radius: 2px; background: var(--accent); }
+.fl-progress__plane {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+.fl-progress__plane svg { width: 100%; height: 100%; fill: var(--accent); stroke: var(--surface-strong); stroke-width: 1.5; paint-order: stroke; }
+
+.fl-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.fl-facts span { display: flex; flex-direction: column; gap: 2px; font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.fl-facts small { color: var(--muted); font-size: 12px; font-weight: 500; }
+
+.fl-note { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.fl-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 12px; }
+
+/* Tracked flight outside our area, drawn by FlightsLayer */
+.fl-far svg { fill: var(--accent); }
+.ac-lbl.fl-far__lbl { display: block; border-color: var(--accent); }

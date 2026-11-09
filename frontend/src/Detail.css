@@ -261,3 +261,6 @@
   transition: transform 0.2s;
 }
 .facts__toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+.track-btn { margin-top: 12px; }
+.track-btn .form-note { margin: 6px 4px 0; }

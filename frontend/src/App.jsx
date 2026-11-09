@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Map from "./Map.jsx";
 import Detail from "./Detail.jsx";
 import { TABS } from "./tabs.js";
@@ -127,7 +127,11 @@ function Shell() {
         </div>
 
         <div className="panel__body">
-          {selected ? <Detail a={selected} lost={selectedLost} onClose={() => select(null)} /> : <Active />}
+          {selected ? <Detail a={selected} lost={selectedLost} onClose={() => select(null)} /> : (
+            <Suspense fallback={<p className="empty">Načítám…</p>}>
+              <Active />
+            </Suspense>
+          )}
         </div>
 
         <footer className="panel__footer">Data: adsb.lol (ODbL)</footer>

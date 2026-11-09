@@ -5,12 +5,67 @@ import { useApp, useInterval, useMapLayer, usePollMs, useStored } from "./state.
 import "./Watched.css";
 
 // Known categories first, in this order; anything the user adds goes after them alphabetically.
-const ORDER = ["hudba", "film a TV", "sport", "byznys", "královské rody"];
-const GLYPH = { hudba: "♪", "film a TV": "★", sport: "◎", byznys: "◆", "královské rody": "♛" };
+const ORDER = ["hudba", "film a TV", "sport", "sportovní týmy", "byznys", "politika", "královské rody"];
+const GLYPH = { hudba: "♪", "film a TV": "★", sport: "◎", "sportovní týmy": "◎", byznys: "◆", politika: "▲", "královské rody": "♛" };
 
 const fmt = (n, d = 0) => n.toLocaleString("cs-CZ", { maximumFractionDigits: d });
 const normReg = (r) => (r || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 const day = (iso) => (iso ? new Date(iso).toLocaleDateString("cs-CZ") : "?");
+// "dnes 14:20", "včera 9:05", "3. 11. 14:20", "3. 11. 2025" for older years.
+function when(ts) {
+  const d = new Date(ts * 1000), now = new Date();
+  const time = d.toLocaleTimeString("cs-CZ", { hour: "numeric", minute: "2-digit" });
+  const days = Math.round((new Date(now.toDateString()) - new Date(d.toDateString())) / 86400000);
+  if (days === 0) return `dnes ${time}`;
+  if (days === 1) return `včera ${time}`;
+  if (d.getFullYear() !== now.getFullYear()) return d.toLocaleDateString("cs-CZ");
+  return `${d.getDate()}. ${d.getMonth() + 1}. ${time}`;
+}
+const visitText = (v) => `${v.from}, ${v.to}`;
+
+function useVisits() {
+  const [visits, setVisits] = useState([]);
+  const load = () =>
+    fetch("/api/watchlist/visits?limit=20")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => setVisits(d.visits))
+      .catch(() => {});
+  useEffect(() => {
+    load();
+  }, []);
+  useInterval(load, 60_000);
+  return visits;
+}
+
+function Visits({ visits }) {
+  const [all, setAll] = useState(false);
+  if (!visits.length) return null;
+  const shown = all ? visits : visits.slice(0, 4);
+  return (
+    <section>
+      <h2 className="section-title">Nedávno nad námi</h2>
+      <ul className="wl-visits">
+        {shown.map((v) => (
+          <li key={`${v.reg}${v.start}`}>
+            <span className="wl-visits__when">{when(v.end)}</span>
+            <span className="wl-visits__main">
+              <b>{v.label}</b>
+              <small>
+                {v.reg}
+                {v.type && ` · ${v.type}`} · {visitText(v)}
+              </small>
+            </span>
+          </li>
+        ))}
+      </ul>
+      {visits.length > 4 && (
+        <button className="btn btn--link btn--small" onClick={() => setAll(!all)}>
+          {all ? "Méně" : `Všech ${visits.length} návštěv`}
+        </button>
+      )}
+    </section>
+  );
+}
 const host = (url) => {
   try {
     return new URL(url).hostname.replace(/^www\./, "");
@@ -128,6 +183,15 @@ function EntryRow({ e, alerted, onAlert, onRemove, onSelect }) {
         </span>
       </div>
       {e.note && <p className="wl-entry__note">{e.note}</p>}
+      <p className="wl-entry__visit">
+        {e.last_visit ? (
+          <>
+            Naposledy nad námi <b>{when(e.last_visit.end)}</b> · {visitText(e.last_visit)}
+          </>
+        ) : (
+          "Zatím jsme ho nad námi nezachytili."
+        )}
+      </p>
       <p className="wl-entry__source">
         Zdroj:{" "}
         <a href={e.source} target="_blank" rel="noopener noreferrer">
@@ -221,7 +285,8 @@ export default function Watched() {
   const { select, flyTo } = useApp();
   const [{ status, entries, note }, reload] = useWatchlist();
   const [alertRegs, reloadAlerts] = useAlertRegs();
-  const [closed, setClosed] = useStored("skywatch.watched.closed", []);
+  const [opened, setOpened] = useStored("skywatch.watched.open", []); // groups start collapsed: the list is long
+  const visits = useVisits();
   const [adding, setAdding] = useState(false);
 
   const live = entries.filter((e) => e.live);
@@ -269,7 +334,7 @@ export default function Watched() {
     const ib = ORDER.indexOf(b) + 1 || 99;
     return ia - ib || a.localeCompare(b, "cs");
   });
-  const toggle = (c) => setClosed(closed.includes(c) ? closed.filter((x) => x !== c) : [...closed, c]);
+  const toggle = (c) => setOpened(opened.includes(c) ? opened.filter((x) => x !== c) : [...opened, c]);
 
   if (status === "loading") return <p className="wl-loading">Načítám seznam…</p>;
   if (status === "error")
@@ -288,7 +353,7 @@ export default function Watched() {
         <span className="wl-hero__text">
           <span className="wl-hero__title">Sledovaná letadla</span>
           <span className="wl-hero__sub">
-            {entries.length} tryskáčů známých osobností ·{" "}
+            {entries.length} letadel známých osobností ·{" "}
             {live.length ? <strong>{live.length} právě v dosahu</strong> : "teď žádný v dosahu"}
           </span>
         </span>
@@ -304,6 +369,8 @@ export default function Watched() {
           </ul>
         </section>
       )}
+
+      <Visits visits={visits} />
 
       {adding ? (
         <AddForm
@@ -322,7 +389,7 @@ export default function Watched() {
 
       {categories.map((c) => {
         const items = entries.filter((e) => e.category === c).sort((a, b) => Boolean(b.live) - Boolean(a.live) || a.label.localeCompare(b.label, "cs"));
-        const open = !closed.includes(c);
+        const open = opened.includes(c);
         const flying = items.filter((e) => e.live).length;
         return (
           <section key={c} className="wl-group">
